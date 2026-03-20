@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CVScan ATS — Testez ton CV contre les robots recruteurs. 100% gratuit, 100% local.">
+<title>CVScan ATS — Bats les robots recruteurs 🤖</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080a;--bg2:#0f0f12;--bg3:#161619;--bg4:#1d1d22;
+  --line:#252530;--line2:#32323f;
+  --tx:#f2f0e8;--tx2:#9090a8;--tx3:#505068;
+  --lime:#d4ff00;--lime2:#aed000;--lime-dim:rgba(212,255,0,.08);
+  --green:#00e87a;--gbg:rgba(0,232,122,.08);--gbd:rgba(0,232,122,.25);
+  --red:#ff3b5c;--rbg:rgba(255,59,92,.08);--rbd:rgba(255,59,92,.25);
+  --amb:#ff9f0a;--abg:rgba(255,159,10,.08);--abd:rgba(255,159,10,.25);
+  --blue:#00c4ff;--bbg:rgba(0,196,255,.08);--bbd:rgba(0,196,255,.2);
+  --purple:#bf5fff;--pbg:rgba(191,95,255,.08);--pbd:rgba(191,95,255,.2);
+  --r:12px;--r2:18px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Space Grotesk',sans-serif;font-size:15px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+
+/* SCANLINES effect */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
+  mix-blend-mode:overlay}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 0%,rgba(212,255,0,.04) 0%,transparent 60%)}
+
+.wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:0 20px 100px}
+
+/* ══ NAV ══ */
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:rgba(8,8,10,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);margin:0 -20px 0}
+.nav-left{display:flex;align-items:center;gap:10px}
+.btn-menu{background:none;border:1px solid var(--line2);border-radius:8px;width:36px;height:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;padding:0;flex-shrink:0;transition:all .15s}
+.btn-menu:hover{background:var(--bg3);border-color:var(--lime)}
+.btn-menu span{display:block;width:14px;height:1.5px;background:var(--tx2);border-radius:1px;transition:all .2s}
+.btn-menu:hover span{background:var(--lime)}
+.nav-logo{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;transition:opacity .15s}
+.nav-logo:hover{opacity:.8}
+.logo-mark{width:30px;height:30px;background:var(--lime);border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:#08080a;letter-spacing:-.05em}
+.logo-name{font-size:15px;font-weight:700;letter-spacing:-.03em}
+.logo-name span{color:var(--lime)}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-xp{display:flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;padding:5px 12px;background:var(--lime-dim);border:1px solid rgba(212,255,0,.2);border-radius:20px;color:var(--lime)}
+.nav-xp::before{content:'⚡'}
+
+/* ══ SIDEBAR ══ */
+.sb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(4px)}
+.sb-overlay.open{opacity:1;pointer-events:all}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:265px;background:var(--bg2);border-right:1px solid var(--line2);z-index:201;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+.sidebar.open{transform:translateX(0)}
+.sb-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+.sb-logo{display:flex;align-items:center;gap:8px}
+.sb-logo-m{width:26px;height:26px;background:var(--lime);border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:#08080a}
+.sb-logo-n{font-size:14px;font-weight:700}
+.sb-logo-n span{color:var(--lime)}
+.sb-close{background:none;border:1px solid var(--line2);border-radius:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx3);font-size:13px;transition:all .15s}
+.sb-close:hover{background:var(--bg3);color:var(--tx);border-color:var(--red)}
+.sb-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .15s;color:var(--tx2);font-size:13.5px;font-weight:500;border:1px solid transparent;user-select:none}
+.sb-item:hover{background:var(--bg3);color:var(--tx)}
+.sb-item.active{background:var(--lime-dim);color:var(--lime);border-color:rgba(212,255,0,.2)}
+.sb-item-ico{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sb-divider{height:1px;background:var(--line);margin:6px 2px}
+.sb-section{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);padding:8px 12px 4px;font-family:'Space Mono',monospace}
+.sb-foot{padding:14px 18px;border-top:1px solid var(--line);font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3)}
+
+/* ══ HERO (GAME STYLE) ══ */
+.hero{padding:52px 0 40px;text-align:center;position:relative}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--lime);background:var(--lime-dim);border:1px solid rgba(212,255,0,.2);padding:5px 13px;border-radius:20px;margin-bottom:22px}
+.hero-tag::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--lime);animation:blink 1s steps(1) infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+h1{font-size:clamp(36px,6vw,72px);font-weight:700;line-height:1.0;letter-spacing:-.04em;margin-bottom:16px}
+h1 .glitch{color:var(--lime);position:relative;display:inline-block}
+h1 .glitch::before,h1 .glitch::after{content:attr(data-text);position:absolute;left:0;top:0;width:100%;pointer-events:none}
+h1 .glitch::before{color:var(--red);clip-path:polygon(0 0,100% 0,100% 35%,0 35%);animation:glitch1 4s infinite 0.5s;opacity:.7}
+h1 .glitch::after{color:var(--blue);clip-path:polygon(0 65%,100% 65%,100% 100%,0 100%);animation:glitch2 4s infinite 1s;opacity:.7}
+@keyframes glitch1{0%,90%,100%{transform:translateX(0)}92%{transform:translateX(-3px)}94%{transform:translateX(3px)}96%{transform:translateX(0)}}
+@keyframes glitch2{0%,88%,100%{transform:translateX(0)}90%{transform:translateX(3px)}93%{transform:translateX(-3px)}96%{transform:translateX(0)}}
+h1 .out{color:transparent;-webkit-text-stroke:1.5px var(--tx2)}
+.hero-sub{font-size:15px;color:var(--tx2);max-width:500px;margin:0 auto 28px;line-height:1.7;font-weight:400}
+
+/* XP Bar / Stats */
+.stats-row{display:inline-flex;gap:0;padding:0;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);overflow:hidden;margin-bottom:0}
+.stat-box{padding:14px 22px;border-right:1px solid var(--line);text-align:center}
+.stat-box:last-child{border-right:none}
+.stat-n{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;display:block;line-height:1;color:var(--lime)}
+.stat-l{font-size:10px;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;font-family:'Space Mono',monospace}
+
+/* ══ UPLOAD ZONE (GAME STYLE) ══ */
+.upload-zone{margin-top:36px}
+.job-wrap{margin-bottom:16px}
+.field-lbl{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:7px;display:flex;align-items:center;gap:8px}
+.field-lbl::after{content:'';flex:1;height:1px;background:var(--line)}
+.opt-pill{background:var(--bg3);border:1px solid var(--line2);border-radius:20px;padding:1px 8px;font-size:10px;color:var(--tx3)}
+textarea.job-in{width:100%;background:var(--bg3);border:1.5px solid var(--line2);border-radius:var(--r);padding:14px 16px;font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--tx);resize:vertical;min-height:90px;outline:none;transition:border-color .2s}
+textarea.job-in:focus{border-color:var(--lime)}
+textarea.job-in::placeholder{color:var(--tx3)}
+
+.drop{border:1.5px dashed var(--line2);border-radius:var(--r2);background:var(--bg2);padding:48px 32px;text-align:center;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.drop::before{content:'';position:absolute;inset:0;background:conic-gradient(from 0deg,transparent 0%,var(--lime-dim) 10%,transparent 20%);opacity:0;transition:opacity .3s;animation:none}
+.drop:hover,.drop.over{border-color:var(--lime);background:rgba(212,255,0,.03)}
+.drop:hover::before,.drop.over::before{opacity:1;animation:rotate 3s linear infinite}
+@keyframes rotate{to{transform:rotate(360deg)}}
+.drop.has-file{border-style:solid;border-color:var(--lime)}
+.drop-ico{font-size:36px;margin-bottom:14px;display:block;transition:transform .2s}
+.drop:hover .drop-ico{transform:scale(1.1) rotate(-5deg)}
+.drop-t{font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-.02em}
+.drop-s{font-size:13px;color:var(--tx3);font-family:'Space Mono',monospace}
+
+.file-card{display:none;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--gbd);border-radius:var(--r);padding:12px 16px;margin-top:12px}
+.file-card.show{display:flex}
+.fc-name{flex:1;font-size:13px;font-weight:600;color:var(--green)}
+.fc-size{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3)}
+.fc-rm{font-size:11px;color:var(--tx3);cursor:pointer;padding:3px 9px;border:1px solid var(--line2);border-radius:6px;transition:all .15s;font-family:'Space Mono',monospace}
+.fc-rm:hover{border-color:var(--red);color:var(--red)}
+
+/* CTA */
+.cta{display:flex;align-items:center;justify-content:space-between;padding:18px 26px;background:var(--lime);color:#08080a;border-radius:var(--r);cursor:pointer;border:none;width:100%;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;letter-spacing:-.02em;transition:all .2s;margin-top:14px;position:relative;overflow:hidden}
+.cta::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15) 0%,transparent 50%);pointer-events:none}
+.cta:hover:not(:disabled){background:var(--lime2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(212,255,0,.25)}
+.cta:active:not(:disabled){transform:translateY(0)}
+.cta:disabled{opacity:.28;cursor:not-allowed;transform:none;box-shadow:none}
+.cta-ico{width:36px;height:36px;background:rgba(0,0,0,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.priv{text-align:center;font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);margin-top:10px}
+.priv a{color:var(--tx3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.err{display:none;background:var(--rbg);border:1px solid var(--rbd);border-radius:var(--r);padding:11px 15px;font-size:13px;color:var(--red);margin-top:10px;font-family:'Space Mono',monospace}
+.err.show{display:block}
+
+/* ══ LOADER (GAME STYLE) ══ */
+.loader{display:none;flex-direction:column;align-items:center;gap:20px;padding:80px 32px;text-align:center}
+.loader.show{display:flex}
+.loader-orb{width:70px;height:70px;position:relative}
+.loader-orb::before,.loader-orb::after{content:'';position:absolute;border-radius:50%;border:2px solid transparent}
+.loader-orb::before{inset:0;border-top-color:var(--lime);animation:sp 1s linear infinite}
+.loader-orb::after{inset:8px;border-right-color:var(--blue);animation:sp 1.5s linear infinite reverse}
+.loader-core{position:absolute;inset:20px;background:var(--lime);border-radius:50%;opacity:.15;animation:pulse2 1s ease-in-out infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@keyframes pulse2{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.35;transform:scale(1.1)}}
+.load-step{font-family:'Space Mono',monospace;font-size:14px;color:var(--lime);letter-spacing:.05em}
+.load-bar-wrap{width:280px;height:4px;background:var(--line2);border-radius:2px;overflow:hidden}
+.load-bar-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--lime));width:0%;border-radius:2px;animation:loadprog 2.2s ease-in-out infinite}
+@keyframes loadprog{0%{width:0%;margin-left:0}60%{width:70%;margin-left:0}80%{width:70%;margin-left:30%}100%{width:0%;margin-left:100%}}
+.load-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3);letter-spacing:.15em;text-transform:uppercase}
+
+/* ══ RESULTS ══ */
+#results{display:none;animation:fadeUp .4s ease}
+#results.show{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.res-bar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px;gap:10px;flex-wrap:wrap}
+.res-ttl{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);letter-spacing:.1em;text-transform:uppercase}
+.btn-back-home{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx3);background:var(--bg3);border:1px solid var(--line2);padding:7px 14px;border-radius:20px;cursor:pointer;transition:all .15s}
+.btn-back-home:hover{border-color:var(--lime);color:var(--lime)}
+
+/* SCORE REVEAL */
+.score-hero{display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:28px 32px;margin-bottom:16px;position:relative;overflow:hidden}
+.score-hero::before{content:'';position:absolute;top:-80px;right:-80px;width:240px;height:240px;border-radius:50%;background:var(--lime);opacity:.03;animation:pulse2 3s ease-in-out infinite}
+.score-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--lime),var(--blue),transparent)}
+.donut{position:relative;width:100px;height:100px}
+.donut svg{transform:rotate(-90deg)}
+.donut-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.donut-n{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;line-height:1;letter-spacing:-.03em}
+.donut-d{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3)}
+.verdict{font-size:24px;font-weight:700;margin-bottom:5px;letter-spacing:-.03em}
+.vdesc{font-size:13px;color:var(--tx2);line-height:1.65;max-width:340px}
+.grade-box{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:22px;font-weight:700;margin:0 auto 4px}
+.grade-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3);text-align:center;letter-spacing:.08em}
+
+/* CONFETTI on great score */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden}
+.cf{position:absolute;width:8px;height:8px;border-radius:2px;animation:fall linear forwards}
+@keyframes fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* METRICS */
+.m3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.mc{background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--lime),var(--blue))}
+.mc-l{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3);margin-bottom:7px}
+.mc-v{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.mc-s{font-size:11px;color:var(--tx3);margin-top:3px}
+.cg{color:var(--green)}.ca{color:var(--amb)}.cr{color:var(--red)}.cl{color:var(--lime)}.cb{color:var(--blue)}
+
+/* MATCH */
+.match-card{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:24px 28px;margin-bottom:16px}
+.match-big{font-family:'Space Mono',monospace;font-size:48px;font-weight:700;color:var(--lime);line-height:1;margin-bottom:3px;letter-spacing:-.04em}
+.match-lbl{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+.match-track{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-bottom:16px}
+.match-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--lime));border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1);width:0}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:3px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:8px 14px;border-radius:8px;cursor:pointer;transition:all .15s;color:var(--tx3);background:none;border:none;letter-spacing:.03em;white-space:nowrap}
+.tab:hover{color:var(--tx);background:var(--bg3)}
+.tab.active{background:var(--bg4);color:var(--lime);border:1px solid rgba(212,255,0,.2)}
+.tab-ct{font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px;background:var(--bg);color:var(--tx3)}
+.tab.active .tab-ct{background:var(--lime);color:#08080a}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeUp .28s ease}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:20px 24px;margin-bottom:13px}
+.card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-ttl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--tx3)}
+
+/* PROGRESS BARS */
+.pbars{display:flex;flex-direction:column;gap:12px}
+.pb-row{}
+.pb-lbls{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.pb-l{color:var(--tx2);font-weight:500}
+.pb-v{font-family:'Space Mono',monospace;font-weight:700}
+.pb-track{height:5px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.pb-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1);width:0}
+
+/* CHECKLIST */
+.cl{display:flex;flex-direction:column}
+.ci{display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}
+.ci:last-child{border-bottom:none;padding-bottom:0}
+.ci:first-child{padding-top:0}
+.ci-box{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ci-box.pass{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.ci-box.fail{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.ci-box.warn{background:var(--abg);color:var(--amb);border:1px solid var(--abd)}
+.ci-box.info{background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)}
+.ci-tx{font-size:13px;color:var(--tx);font-weight:500}
+.ci-nt{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);margin-top:2px;line-height:1.5}
+
+/* ISSUES */
+.issues{display:flex;flex-direction:column;gap:8px}
+.issue{display:flex;gap:12px;padding:13px 15px;background:var(--bg3);border-radius:var(--r);border-left:3px solid transparent}
+.issue.critical{border-left-color:var(--red)}
+.issue.warning{border-left-color:var(--amb)}
+.issue.tip{border-left-color:var(--blue)}
+.i-ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.issue.critical .i-ico{background:var(--rbg);color:var(--red)}
+.issue.warning .i-ico{background:var(--abg);color:var(--amb)}
+.issue.tip .i-ico{background:var(--bbg);color:var(--blue)}
+.i-ttl{font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.i-bdg{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:8px}
+.issue.critical .i-bdg{background:var(--rbg);color:var(--red)}
+.issue.warning .i-bdg{background:var(--abg);color:var(--amb)}
+.issue.tip .i-bdg{background:var(--bbg);color:var(--blue)}
+.i-desc{font-size:13px;color:var(--tx2);line-height:1.6}
+.tip-box{background:var(--bbg);border:1px solid var(--bbd);border-radius:var(--r);padding:12px 15px;font-size:13px;color:var(--blue);line-height:1.65;margin-top:11px}
+.tip-box b{color:var(--tx)}
+
+/* KEYWORDS */
+.kw-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.kw{font-family:'Space Mono',monospace;font-size:11px;padding:3px 10px;border-radius:20px;border:1px solid var(--line2);color:var(--tx3);background:var(--bg3)}
+.kw.found{background:var(--gbg);border-color:var(--gbd);color:var(--green);font-weight:700}
+.kw.match{background:var(--lime-dim);border-color:rgba(212,255,0,.3);color:var(--lime);font-weight:700}
+.kw.miss{background:var(--rbg);border-color:var(--rbd);color:var(--red)}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:16px}
+.timeline::before{content:'';position:absolute;left:4px;top:6px;bottom:6px;width:1px;background:linear-gradient(to bottom,var(--lime),var(--blue))}
+.tl-item{position:relative;padding:0 0 16px 18px}
+.tl-item:last-child{padding-bottom:0}
+.tl-dot{position:absolute;left:-12px;top:4px;width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 8px var(--lime)}
+.tl-dot.gap{background:var(--red);box-shadow:0 0 8px var(--red)}
+.tl-per{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3);margin-bottom:2px}
+.tl-ttl{font-size:13px;font-weight:700;color:var(--tx)}
+.tl-dur{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);margin-top:1px}
+.tl-gap{background:var(--rbg);border:1px solid var(--rbd);border-radius:7px;padding:7px 11px;font-size:12px;color:var(--red);font-family:'Space Mono',monospace}
+
+/* INFO GRID */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.info-row{background:var(--bg3);border-radius:var(--r);padding:10px 13px}
+.info-k{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:3px}
+.info-v{font-size:14px;font-weight:700;color:var(--tx)}
+.info-v.na{color:var(--tx3);font-weight:400;font-style:italic}
+
+/* LEVEL */
+.lvl-badge{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:var(--r);font-size:14px;font-weight:700;margin-bottom:12px;font-family:'Space Mono',monospace;letter-spacing:.03em}
+.lvl-badge.junior{background:var(--bbg);color:var(--blue);border:1px solid var(--bbd)}
+.lvl-badge.mid{background:var(--abg);color:var(--amb);border:1px solid var(--abd)}
+.lvl-badge.senior{background:var(--gbg);color:var(--green);border:1px solid var(--gbd)}
+.lvl-badge.expert{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(212,255,0,.3)}
+
+/* ══ PLAN D'ACTION ══ */
+.plan-step{display:flex;gap:12px;padding:13px 15px;background:var(--bg3);border-radius:var(--r);border-left:3px solid transparent;margin-bottom:8px}
+.ps-ico{font-size:20px;flex-shrink:0;margin-top:1px}
+.ps-body{flex:1}
+.ps-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.ps-badge{font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:8px;letter-spacing:.06em;text-transform:uppercase}
+.ps-detail{font-size:13px;color:var(--tx2);line-height:1.6}
+
+/* ══ LEGAL ══ */
+.legal-sec{border-top:1px solid var(--line);margin-top:64px;padding-top:32px}
+.leg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.leg-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.leg-card-ttl{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--tx2);margin-bottom:8px}
+.leg-card p{font-size:12px;color:var(--tx3);line-height:1.7}
+.leg-card a{color:var(--tx2);cursor:pointer;text-decoration:underline;text-underline-offset:3px;font-family:'Space Mono',monospace;font-size:11px}
+.foot{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-top:1px solid var(--line)}
+.foot-copy{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3)}
+.foot-links{display:flex;gap:16px}
+.foot-links a{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);text-decoration:none;cursor:pointer;transition:color .15s}
+.foot-links a:hover{color:var(--lime)}
+
+/* ══ MODAL ══ */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:300;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:28px;max-width:620px;width:100%;max-height:85vh;overflow-y:auto;position:relative;animation:fadeUp .25s ease}
+.modal h2{font-size:20px;font-weight:700;margin-bottom:12px;letter-spacing:-.02em}
+.modal h3{font-size:14px;font-weight:700;margin:16px 0 7px;color:var(--tx);font-family:'Space Mono',monospace;letter-spacing:.04em}
+.modal p,.modal li{font-size:13px;color:var(--tx2);line-height:1.75;margin-bottom:8px}
+.modal ul{padding-left:18px;margin-bottom:8px}
+.modal-close{position:absolute;top:14px;right:14px;background:var(--bg3);border:1px solid var(--line2);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:'Space Mono',monospace;font-size:12px;color:var(--tx3);transition:all .15s}
+.modal-close:hover{background:var(--rbg);border-color:var(--rbd);color:var(--red)}
+
+/* ══ PAGES ══ */
+.page{display:none}
+.page.active{display:block;animation:fadeUp .32s ease}
+.page-head{padding:36px 0 24px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.page-back{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--tx3);font-family:'Space Mono',monospace;font-size:11px;font-weight:700;margin-bottom:20px;padding:6px 13px;border:1px solid var(--line2);border-radius:20px;background:var(--bg3);transition:all .15s;letter-spacing:.04em;text-transform:uppercase;user-select:none}
+.page-back:hover{color:var(--lime);border-color:rgba(212,255,0,.3)}
+.page-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--lime);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.page-eyebrow::before{content:'';width:16px;height:1px;background:var(--lime)}
+.page-h1{font-size:clamp(24px,4vw,42px);font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px}
+.page-sub{font-size:14px;color:var(--tx2);max-width:480px;line-height:1.7}
+
+/* ══ LEADERBOARD ══ */
+.lb-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.lb-sort{display:flex;gap:4px;flex-wrap:wrap}
+.lb-sort-btn{font-family:'Space Mono',monospace;font-size:10px;padding:6px 12px;border-radius:20px;cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--tx3);transition:all .15s;letter-spacing:.04em;text-transform:uppercase}
+.lb-sort-btn.active{background:var(--lime-dim);border-color:rgba(212,255,0,.3);color:var(--lime)}
+.lb-add-btn{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;padding:8px 16px;border-radius:20px;cursor:pointer;background:var(--lime);border:none;color:#08080a;transition:all .2s;letter-spacing:.04em;white-space:nowrap}
+.lb-add-btn:hover{background:var(--lime2)}
+.lb-empty{text-align:center;padding:52px 20px}
+.lb-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:16px 18px;margin-bottom:10px;transition:border-color .2s}
+.lb-card:hover{border-color:var(--line2)}
+.lb-card-top{display:flex;align-items:flex-start;gap:12px}
+.lb-rank{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0;background:var(--bg4);color:var(--tx3)}
+.lb-rank.gold{background:rgba(255,159,10,.15);color:var(--amb)}
+.lb-rank.silver{background:rgba(160,160,176,.1);color:#9090a8}
+.lb-rank.bronze{background:rgba(180,100,50,.1);color:#cd7f32}
+.lb-info{flex:1;min-width:0}
+.lb-name{font-size:15px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-meta{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);display:flex;gap:10px;flex-wrap:wrap}
+.lb-score-bdg{padding:4px 11px;border-radius:20px;font-family:'Space Mono',monospace;font-size:13px;font-weight:700;flex-shrink:0;align-self:flex-start}
+.lb-actions{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);flex-wrap:wrap}
+.lb-vote{display:flex;align-items:center;gap:4px;font-family:'Space Mono',monospace;font-size:11px;padding:5px 11px;border-radius:20px;cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--tx3);transition:all .15s}
+.lb-vote.up.voted{background:var(--gbg);border-color:var(--gbd);color:var(--green)}
+.lb-vote.down.voted{background:var(--rbg);border-color:var(--rbd);color:var(--red)}
+.lb-vote:hover,.lb-cmt-btn:hover{border-color:var(--line);color:var(--tx)}
+.lb-cmt-btn{font-family:'Space Mono',monospace;font-size:11px;padding:5px 11px;border-radius:20px;cursor:pointer;border:1px solid var(--line2);background:var(--bg3);color:var(--tx3);transition:all .15s;margin-left:auto}
+.lb-net{font-family:'Space Mono',monospace;font-size:11px;color:var(--tx3);padding:0 4px}
+.lb-cmts{margin-top:10px;display:none}
+.lb-cmts.open{display:block}
+.lb-cmt-list{display:flex;flex-direction:column;gap:6px;margin-bottom:9px}
+.lb-cmt{background:var(--bg3);border-radius:8px;padding:9px 12px}
+.lb-cmt-auth{font-family:'Space Mono',monospace;font-size:10px;font-weight:700;color:var(--lime);margin-bottom:2px}
+.lb-cmt-tx{font-size:13px;color:var(--tx2);line-height:1.5}
+.lb-cmt-form{display:flex;gap:7px}
+.lb-cmt-in{flex:1;background:var(--bg4);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--tx);outline:none;transition:border-color .2s}
+.lb-cmt-in:focus{border-color:var(--lime)}
+.lb-cmt-send{padding:7px 14px;background:var(--lime);border:none;border-radius:7px;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;cursor:pointer;color:#08080a;letter-spacing:.04em}
+.submit-form{display:flex;flex-direction:column;gap:11px}
+.sf-lbl{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx3);margin-bottom:4px;display:block}
+.sf-in{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:8px;padding:9px 13px;font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--tx);outline:none;transition:border-color .2s}
+.sf-in:focus{border-color:var(--lime)}
+.sf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sf-sub{padding:13px;background:var(--lime);border:none;border-radius:var(--r);font-family:'Space Mono',monospace;font-size:13px;font-weight:700;cursor:pointer;color:#08080a;width:100%;margin-top:4px;letter-spacing:.04em;transition:all .2s}
+.sf-sub:hover{background:var(--lime2)}
+
+/* ══ DOMAIN CVs ══ */
+.domain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+.domain-card{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.domain-card::after{content:'';position:absolute;inset:0;border-radius:var(--r2);opacity:0;transition:opacity .2s;background:linear-gradient(135deg,var(--lime-dim),transparent)}
+.domain-card:hover{border-color:rgba(212,255,0,.4);transform:translateY(-3px)}
+.domain-card:hover::after{opacity:1}
+.domain-card-ico{font-size:26px;margin-bottom:10px;display:block}
+.domain-card-name{font-size:14px;font-weight:700;color:var(--tx);margin-bottom:3px;letter-spacing:-.01em}
+.domain-card-sub{font-family:'Space Mono',monospace;font-size:10px;color:var(--tx3);line-height:1.5}
+.domain-card-badge{position:absolute;top:10px;right:10px;font-family:'Space Mono',monospace;font-size:9px;padding:2px 7px;border-radius:8px;background:var(--lime-dim);color:var(--lime);border:1px solid rgba(212,255,0,.2);font-weight:700}
+.domain-cv-view{display:none;animation:fadeUp .25s ease}
+.domain-cv-view.active{display:block}
+.cv-preview-box{background:var(--bg2);border:1px solid var(--line2);border-radius:var(--r2);padding:24px 26px;font-family:'Space Mono',monospace;font-size:11.5px;line-height:1.9;color:#c8c8b8;white-space:pre-wrap;overflow-x:auto;max-height:560px;overflow-y:auto}
+.domain-actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+.btn-dl{display:inline-flex;align-items:center;gap:7px;background:var(--lime);color:#08080a;border:none;padding:11px 20px;border-radius:var(--r);font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .2s}
+.btn-dl:hover{background:var(--lime2)}
+.btn-test{display:inline-flex;align-items:center;gap:7px;background:var(--bg3);color:var(--tx);border:1px solid var(--line2);padding:11px 20px;border-radius:var(--r);font-family:'Space Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .2s}
+.btn-test:hover{background:var(--bg4);border-color:var(--lime);color:var(--lime)}
+
+/* CV STRUCTURE GUIDE */
+.cv-structure{margin-bottom:20px}
+.cv-section-guide{background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;gap:14px;align-items:flex-start}
+.csg-num{font-family:'Space Mono',monospace;font-size:12px;font-weight:700;color:var(--lime);min-width:24px;margin-top:1px}
+.csg-body{}
+.csg-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px}
+.csg-sub{font-size:12px;color:var(--tx3);line-height:1.55;font-family:'Space Mono',monospace}
+
+@media(max-width:600px){
+  .m3{grid-template-columns:1fr 1fr}
+  .score-hero{grid-template-columns:1fr;text-align:center}
+  .donut{margin:0 auto}
+  .info-grid{grid-template-columns:1fr}
+  .leg-grid{grid-template-columns:1fr}
+  .domain-grid{grid-template-columns:1fr 1fr}
+  .sf-row{grid-template-columns:1fr}
+  .stats-row{flex-wrap:wrap}
+  .stat-box{border-right:none;border-bottom:1px solid var(--line)}
+  nav{padding:12px 16px}
+}
+</style>
+</head>
+<body>
+
+<!-- STICKY NAV -->
+<nav id="mainNav">
+  <div class="nav-left">
+    <button class="btn-menu" id="btnMenu" title="Menu"><span></span><span></span><span></span></button>
+    <div class="nav-logo" id="navLogo" title="Retour à l'accueil">
+      <div class="logo-mark">CV</div>
+      <span class="logo-name">CV<span>Scan</span></span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-xp" id="navXP">0 CVs analysés</div>
+  </div>
+</nav>
+
+<!-- SIDEBAR -->
+<div class="sb-overlay" id="sbOverlay"></div>
+<div class="sidebar" id="sidebar">
+  <div class="sb-head">
+    <div class="sb-logo"><div class="sb-logo-m">CV</div><span class="sb-logo-n">CV<span>Scan</span> ATS</span></div>
+    <button class="sb-close" id="sbClose">✕</button>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section">Navigation</div>
+    <div class="sb-item active" data-page="home"><span class="sb-item-ico">🎮</span>Analyser mon CV</div>
+    <div class="sb-item" data-page="leaderboard"><span class="sb-item-ico">🏆</span>Leaderboard</div>
+    <div class="sb-item" data-page="domains"><span class="sb-item-ico">📚</span>CV parfait par domaine</div>
+    <div class="sb-divider"></div>
+    <div class="sb-section">Extras</div>
+    <div class="sb-item" id="sbPerfect"><span class="sb-item-ico">⭐</span>Le CV 100/100</div>
+    <div class="sb-item" id="sbPrivacy"><span class="sb-item-ico">🔒</span>Confidentialité</div>
+    <div class="sb-item" id="sbLegal"><span class="sb-item-ico">⚖️</span>Mentions légales</div>
+    <div class="sb-item" id="sbCgu"><span class="sb-item-ico">📋</span>CGU</div>
+  </div>
+  <div class="sb-foot">CVScan ATS v3.0 · 100% gratuit · 0 données collectées</div>
+</div>
+
+<!-- CONFETTI CONTAINER -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<div class="wrap">
+
+<!-- ══ HOME PAGE ══ -->
+<div id="mainContent">
+
+<section class="hero">
+  <div class="hero-tag">BOSS FIGHT vs ATS</div>
+  <h1>Ton CV<br>bat-il<br>les <span class="glitch" data-text="robots">robots</span> ?</h1>
+  <p class="hero-sub">75% des CVs sont éliminés par des algorithmes avant qu'un humain ne les lise. Score ton CV, monte dans le classement, gagne le poste. 🎯</p>
+  <div class="stats-row">
+    <div class="stat-box"><span class="stat-n">80+</span><div class="stat-l">Critères</div></div>
+    <div class="stat-box"><span class="stat-n">0€</span><div class="stat-l">Coût</div></div>
+    <div class="stat-box"><span class="stat-n">0</span><div class="stat-l">Données</div></div>
+    <div class="stat-box"><span class="stat-n cl" id="cvCount">0</span><div class="stat-l">CVs analysés</div></div>
+  </div>
+</section>
+
+<div id="uploadArea">
+  <div class="upload-zone">
+    <div class="job-wrap">
+      <div class="field-lbl">Offre d'emploi <span class="opt-pill">optionnel</span></div>
+      <textarea class="job-in" id="jobOffer" placeholder="Colle le texte de l'offre pour un score de matching personnalisé...&#10;Ex : Nous recherchons un Développeur Full Stack React/Node.js..."></textarea>
+    </div>
+    <div class="field-lbl">Ton CV</div>
+    <input type="file" id="fileInput" accept=".pdf,.txt,.doc,.docx" style="display:none">
+    <div class="drop" id="dropZone">
+      <span class="drop-ico">📄</span>
+      <div class="drop-t">Dépose ton CV ici</div>
+      <div class="drop-s">ou clique · PDF · TXT · DOCX · max 10Mo</div>
+    </div>
+    <div class="file-card" id="fileCard">
+      <span style="font-size:18px">📋</span>
+      <span class="fc-name" id="fcName"></span>
+      <span class="fc-size" id="fcSize"></span>
+      <span class="fc-rm" id="btnReset">Changer</span>
+    </div>
+    <button class="cta" id="analyzeBtn" disabled>
+      <span>⚡ LANCER L'ANALYSE</span>
+      <div class="cta-ico">→</div>
+    </button>
+    <p class="priv">Ton CV ne quitte jamais ton navigateur · <a id="linkPrivacy">Confidentialité</a></p>
+    <div class="err" id="errMsg"></div>
+  </div>
+</div>
+
+<!-- LOADER -->
+<div class="loader" id="loader">
+  <div class="loader-orb"><div class="loader-core"></div></div>
+  <div class="load-step" id="loaderStep">CHARGEMENT...</div>
+  <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
+  <div class="load-lbl">analyse ats en cours</div>
+</div>
+
+<!-- RESULTS -->
+<div id="results">
+  <div class="res-bar">
+    <div class="res-ttl">// rapport ats</div>
+    <button class="btn-back-home" id="btnNewCV">← REJOUER</button>
+  </div>
+  <div class="score-hero">
+    <div class="donut">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>
+        <circle id="scoreArc" cx="50" cy="50" r="42" fill="none" stroke="#d4ff00" stroke-width="7" stroke-linecap="round"
+          stroke-dasharray="263.9" stroke-dashoffset="263.9"
+          style="transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1),stroke .5s"/>
+      </svg>
+      <div class="donut-in">
+        <div class="donut-n" id="scoreNum">0</div>
+        <div class="donut-d">/100</div>
+      </div>
+    </div>
+    <div>
+      <div class="verdict" id="scoreVerdict"></div>
+      <div class="vdesc" id="scoreDesc"></div>
+    </div>
+    <div>
+      <div class="grade-box" id="gradeBadge"></div>
+      <div class="grade-lbl">GRADE</div>
+    </div>
+  </div>
+  <div id="matchSection" style="display:none">
+    <div class="match-card">
+      <div class="card-hd" style="margin-bottom:8px"><div class="card-ttl">// matching avec l'offre</div></div>
+      <div class="match-big" id="matchPct">0%</div>
+      <div class="match-lbl">score de correspondance</div>
+      <div class="match-track"><div class="match-fill" id="matchBar"></div></div>
+      <div id="matchDetails"></div>
+    </div>
+  </div>
+  <div class="m3" id="quickMetrics"></div>
+  <div class="tabs" id="tabBar"></div>
+  <div id="tabPanels"></div>
+</div>
+
+<!-- LEGAL -->
+<div class="legal-sec">
+  <div class="leg-grid">
+    <div class="leg-card">
+      <div class="leg-card-ttl">🔒 Confidentialité</div>
+      <p>CVScan ATS tourne entièrement dans ton navigateur. Aucune donnée envoyée nulle part.</p>
+      <a id="lPriv">Lire la politique →</a>
+    </div>
+    <div class="leg-card">
+      <div class="leg-card-ttl">⚖️ Mentions légales</div>
+      <p>Résultats indicatifs. Ne garantit pas le passage dans un ATS réel (algorithmes variés).</p>
+      <a id="lLeg">Mentions complètes →</a>
+    </div>
+    <div class="leg-card">
+      <div class="leg-card-ttl">📋 CGU</div>
+      <p>Gratuit, sans pub, sans tracking. Utilisation libre selon les CGU.</p>
+      <a id="lCgu">Conditions →</a>
+    </div>
+  </div>
+  <div class="foot">
+    <div class="foot-copy">© 2025 CVScan ATS v3.0</div>
+    <div class="foot-links">
+      <a id="fPriv">Confidentialité</a>
+      <a id="fLeg">Légal</a>
+      <a id="fCgu">CGU</a>
+    </div>
+  </div>
+</div>
+
+</div><!-- /mainContent -->
+
+<!-- ══ PAGE LEADERBOARD ══ -->
+<div class="page" id="page-leaderboard">
+  <div class="page-back" id="backLB">← ACCUEIL</div>
+  <div class="page-head">
+    <div class="page-eyebrow">Classement mondial</div>
+    <div class="page-h1">🏆 Leaderboard</div>
+    <p class="page-sub">Les meilleurs CVs de la communauté. Publie ton score, vote, commente. Le meilleur CV gagne le respect. 🎯</p>
+  </div>
+  <div class="lb-toolbar">
+    <div class="lb-sort">
+      <button class="lb-sort-btn active" data-sort="score">📊 Score</button>
+      <button class="lb-sort-btn" data-sort="votes">👍 Votes</button>
+      <button class="lb-sort-btn" data-sort="recent">🕐 Récents</button>
+    </div>
+    <button class="lb-add-btn" id="btnSubmitLB">+ Publier mon score</button>
+  </div>
+  <div id="lbList"></div>
+</div>
+
+<!-- ══ PAGE DOMAINES ══ -->
+<div class="page" id="page-domains">
+  <div class="page-back" id="backDomains">← ACCUEIL</div>
+  <div id="domainGrid">
+    <div class="page-head">
+      <div class="page-eyebrow">Bibliothèque de modèles</div>
+      <div class="page-h1">📚 CV parfait par domaine</div>
+      <p class="page-sub">Sélectionne ton secteur, découvre la structure optimale et télécharge le modèle 100% ATS-proof.</p>
+    </div>
+    <div class="domain-grid" id="domainCards"></div>
+  </div>
+  <div class="domain-cv-view" id="domainCvView">
+    <div class="page-back" id="btnBackDomain">← DOMAINES</div>
+    <div id="domainCvContent"></div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-close" id="modalClose">✕</div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ══ COUNTER ══
+function getCount(){return parseInt(localStorage.getItem('cvscan_count')||'0');}
+function incCount(){var n=getCount()+1;localStorage.setItem('cvscan_count',n);updCount();}
+function updCount(){
+  var n=getCount();
+  var el=document.getElementById('cvCount');if(el)el.textContent=n.toLocaleString('fr-FR');
+  var nx=document.getElementById('navXP');if(nx)nx.textContent=n+' CV'+(n>1?'s':'')+' analysé'+(n>1?'s':'');
+}
+updCount();
+
+// ══ PDF.JS ══
+async function loadPdfJs(){
+  if(window.pdfjsLib)return;
+  await new Promise(function(ok,fail){
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=ok;s.onerror=fail;document.head.appendChild(s);
+  });
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+async function extractPDF(file){
+  try{
+    await loadPdfJs();
+    var buf=await file.arrayBuffer();
+    var pdf=await pdfjsLib.getDocument({data:buf}).promise;
+    var out='';
+    for(var i=1;i<=pdf.numPages;i++){
+      var pg=await pdf.getPage(i);
+      var ct=await pg.getTextContent();
+      out+=ct.items.map(function(x){return x.str;}).join(' ')+'\n';
+    }
+    return {text:out,pages:pdf.numPages};
+  }catch(e){return {text:'',pages:0};}
+}
+async function extractText(file){
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='pdf')return extractPDF(file);
+  return new Promise(function(res){
+    var r=new FileReader();
+    r.onload=function(e){res({text:e.target.result||'',pages:1});};
+    r.onerror=function(){res({text:'',pages:0});};
+    r.readAsText(file);
+  });
+}
+
+// ══ FILE STATE ══
+var cvFile=null,cvText='',cvPages=0;
+var dropZone=document.getElementById('dropZone');
+var fileInput=document.getElementById('fileInput');
+
+fileInput.addEventListener('change',function(e){if(e.target.files[0])setFile(e.target.files[0]);});
+dropZone.addEventListener('click',function(){fileInput.click();});
+dropZone.addEventListener('dragover',function(e){e.preventDefault();dropZone.classList.add('over');});
+dropZone.addEventListener('dragleave',function(){dropZone.classList.remove('over');});
+dropZone.addEventListener('drop',function(e){e.preventDefault();dropZone.classList.remove('over');if(e.dataTransfer.files[0])setFile(e.dataTransfer.files[0]);});
+
+function setFile(f){
+  var ext=f.name.split('.').pop().toLowerCase();
+  if(!['pdf','txt','doc','docx'].includes(ext)){showErr('Format non supporté. Utilise PDF, TXT ou DOCX.');return;}
+  if(f.size>10*1024*1024){showErr('Fichier trop volumineux (max 10 Mo).');return;}
+  cvFile=f;
+  document.getElementById('fcName').textContent=f.name;
+  document.getElementById('fcSize').textContent=(f.size/1024).toFixed(0)+' Ko';
+  document.getElementById('fileCard').classList.add('show');
+  dropZone.classList.add('has-file');
+  dropZone.querySelector('.drop-t').textContent='Fichier chargé ✓';
+  hideErr();
+  document.getElementById('analyzeBtn').disabled=false;
+  extractText(f).then(function(r){cvText=r.text;cvPages=r.pages;});
+}
+document.getElementById('btnReset').addEventListener('click',function(e){e.stopPropagation();resetFile();});
+function resetFile(){
+  cvFile=null;cvText='';cvPages=0;
+  fileInput.value='';
+  document.getElementById('fileCard').classList.remove('show');
+  dropZone.classList.remove('has-file');
+  dropZone.querySelector('.drop-t').textContent='Dépose ton CV ici';
+  document.getElementById('analyzeBtn').disabled=true;
+}
+function showErr(m){var e=document.getElementById('errMsg');e.textContent=m;e.classList.add('show');}
+function hideErr(){document.getElementById('errMsg').classList.remove('show');}
+
+// ══ ATS ENGINE ══
+var SECTION_KW={
+  experience:['expérience professionnelle','expériences professionnelles','expérience','parcours professionnel','emplois','work experience'],
+  formation:['formation','éducation','diplômes','études','parcours académique','education'],
+  competences:['compétences','skills','aptitudes','savoir-faire','technologies','technical skills'],
+  langues:['langues','languages','compétences linguistiques'],
+  certif:['certifications','certificats','accréditations'],
+  contact:['contact','coordonnées','informations personnelles'],
+};
+var SOFT_SKILLS=['leadership','communication','travail en équipe','teamwork','organisation','gestion du temps','adaptabilité','créativité','autonomie','proactif','rigueur','esprit d\'équipe','force de proposition','initiative','polyvalence','empathie','négociation','résolution de problèmes','problem solving','pédagogie','coaching','management','encadrement','gestion de projet'];
+var TECH_SKILLS=['python','javascript','java','c++','c#','php','ruby','swift','kotlin','go','rust','react','angular','vue','node','django','flask','spring','laravel','html','css','scss','typescript','sql','mysql','postgresql','mongodb','redis','docker','kubernetes','aws','azure','gcp','git','github','gitlab','linux','excel','word','powerpoint','salesforce','sap','hubspot','jira','confluence','trello','slack','figma','photoshop','illustrator','indesign','tableau','power bi','tensorflow','pytorch'];
+var LANGUAGES={'anglais':['anglais','english','b1','b2','c1','c2','toeic','toefl','ielts'],'français':['français','french','dalf','delf'],'espagnol':['espagnol','spanish','español'],'allemand':['allemand','german','deutsch'],'mandarin':['mandarin','chinois','chinese'],'arabe':['arabe','arabic'],'italien':['italien','italian'],'portugais':['portugais','portuguese']};
+var QUANTIFIERS=[/\d+\s*%/,/\d+\s*(k€|k\$|m€|m\$)/,/\d+\s*(personnes|collaborateurs|clients|projets|mois|ans)/,/[+\-]\d+/,/\d+[x×]/,/budget\s+de\s+\d+/,/\d+\s*(millions?|milliards?)/,/augmentation\s+de/i,/réduction\s+de/i];
+var DATE_YEAR=/\b(20\d{2}|19[6-9]\d)\b/g;
+var EMAIL_RE=/[\w.+%-]+@[\w.-]+\.[a-z]{2,}/i;
+var PHONE_RE=/(\+33|0)[1-9][\s.\-]?(\d{2}[\s.\-]?){4}/;
+var LINKEDIN_RE=/linkedin\.com\/in\//i;
+var URL_RE=/https?:\/\/[^\s]+/gi;
+
+function extractExps(text){
+  var exps=[],re=/\b(20\d{2}|19\d{2})\s*[\-–—\/]\s*(20\d{2}|19\d{2}|présent|aujourd|maintenant|current|now)\b/gi,m;
+  while((m=re.exec(text))!==null){
+    var s=parseInt(m[1]),endRaw=m[2],ongoing=/présent|aujourd|maintenant|current|now/i.test(endRaw),e=ongoing?new Date().getFullYear():parseInt(endRaw);
+    if(s>=1990&&e>=s&&e<=new Date().getFullYear()+1){
+      var ctx=text.substring(Math.max(0,m.index-50),m.index+100);
+      exps.push({start:s,end:e,duration:e-s,ongoing:ongoing,context:ctx});
+    }
+  }
+  exps.sort(function(a,b){return b.start-a.start;});return exps;
+}
+function detectGaps(exps){
+  var gaps=[];
+  for(var i=0;i<exps.length-1;i++){var g=exps[i].start-exps[i+1].end;if(g>1)gaps.push({from:exps[i+1].end,to:exps[i].start,years:g});}
+  return gaps;
+}
+function analyzeJobMatch(cvT,jobT){
+  if(!jobT||jobT.trim().length<20)return null;
+  var cv=cvT.toLowerCase(),job=jobT.toLowerCase();
+  var words=job.split(/\s+/).filter(function(w){return w.length>3;});
+  var uniq=[...new Set(words)];
+  var found=0,foundList=[],missList=[];
+  var stop=['vous','nous','votre','notre','pour','dans','avec','les','des','une','est','être','avoir','faire','plus','mais','que','qui','par','sur','tout','très','bien','même','leur','aussi','sont','cette','peut','doit','sera','chez'];
+  uniq.forEach(function(w){if(cv.includes(w)){found++;foundList.push(w);}else if(w.length>4&&!stop.includes(w))missList.push(w);});
+  return {pct:Math.round((found/Math.max(uniq.length,1))*100),foundList:foundList.slice(0,20),missingList:missList.slice(0,15)};
+}
+
+function analyzeATS(text,filename,jobOffer,pageCount){
+  var t=text||'',tl=t.toLowerCase(),words=tl.split(/\s+/).filter(function(w){return w.length>1;}),wordCount=words.length,hasText=t.trim().length>80;
+  var issues=[],checklist=[];
+  if(!hasText){
+    return {score:8,verdict:'Non analysable',verdictDesc:'Fichier illisible — PDF image ou protégé.',grade:'E',
+      issues:[{type:'critical',title:'CV illisible par les ATS',desc:'PDF image/scan ou protégé. Recrée ton CV dans Word ou Google Docs puis exporte en PDF texte.'},
+        {type:'critical',title:'Solution rapide',desc:'Ouvre Word → tape ton CV → Fichier → Enregistrer en PDF. Test : peut-on sélectionner le texte dans le PDF ?'},
+        {type:'tip',title:'Alternative : envoie un .docx',desc:"Si l'offre l'accepte, un .docx est souvent mieux parsé qu'un PDF."}],
+      checklist:[{text:'Texte extractible',state:'fail',note:'PDF image ou vide'}],
+      subScores:[],kwFound:[],kwMissing:[],jobMatch:null,experiences:[],gaps:[],info:{}};
+  }
+  var ext=filename.split('.').pop().toLowerCase();
+  checklist.push({text:'Format (.'+ext+')',state:['pdf','docx'].includes(ext)?'pass':'warn',note:['pdf','docx'].includes(ext)?'Optimal':'Préfère PDF ou DOCX'});
+  var goodName=/cv|curriculum|resume|vitae/i.test(filename);
+  checklist.push({text:'Nom de fichier',state:goodName?'pass':'warn',note:goodName?'':'Renomme en CV-Prenom-Nom.pdf'});
+  if(!goodName)issues.push({type:'tip',title:'Nom de fichier à optimiser',desc:'"'+filename+'" → renomme en "CV-Prenom-Nom.pdf".'});
+  var pQ=wordCount>150?'Excellent':wordCount>80?'Correct':'Faible';
+  checklist.push({text:'Qualité parsing ('+pQ+')',state:wordCount>150?'pass':wordCount>80?'warn':'fail',note:'~'+wordCount+' mots extraits'});
+  var lengthScore=0;
+  if(wordCount<100){lengthScore=15;issues.push({type:'critical',title:'CV trop court ('+wordCount+' mots)',desc:'Minimum 350 mots. Développe tes expériences : missions, outils, résultats chiffrés.'});}
+  else if(wordCount<350){lengthScore=55;issues.push({type:'warning',title:'CV court ('+wordCount+' mots)',desc:'Idéal : 350–900 mots. Enrichis chaque poste avec tes missions détaillées et tes outils.'});}
+  else if(wordCount>900){lengthScore=80;issues.push({type:'tip',title:'CV long ('+wordCount+' mots)',desc:'Certains ATS tronquent au-delà de 2 pages. Concentre-toi sur tes 10 dernières années.'});}
+  else lengthScore=100;
+  checklist.push({text:'Longueur ('+wordCount+' mots)',state:wordCount>=350&&wordCount<=900?'pass':'warn',note:'Idéal : 350–900 mots'});
+  var foundSec={};
+  Object.keys(SECTION_KW).forEach(function(k){foundSec[k]=SECTION_KW[k].some(function(kw){return tl.includes(kw);});});
+  var sectionScore=(['experience','formation','competences','contact'].filter(function(k){return foundSec[k];}).length/4)*100;
+  checklist.push({text:'Section Expérience',state:foundSec.experience?'pass':'fail',note:foundSec.experience?'':'Titre exact : "Expérience professionnelle"'});
+  checklist.push({text:'Section Formation',state:foundSec.formation?'pass':'fail',note:foundSec.formation?'':'Titre exact : "Formation"'});
+  checklist.push({text:'Section Compétences',state:foundSec.competences?'pass':'fail',note:foundSec.competences?'':'Ajoute une section dédiée'});
+  checklist.push({text:'Section Langues',state:foundSec.langues?'pass':'warn',note:foundSec.langues?'':'Recommandé'});
+  checklist.push({text:'Certifications',state:foundSec.certif?'pass':'info',note:foundSec.certif?'':'Optionnel mais valorisant'});
+  if(!foundSec.experience)issues.push({type:'critical',title:'Section "Expérience" absente',desc:'Utilise "Expérience professionnelle". Les ATS cherchent ce titre exact.'});
+  if(!foundSec.formation)issues.push({type:'critical',title:'Section "Formation" absente',desc:'Utilise "Formation". Indique ton niveau (Bac+3, Master...) et l\'établissement.'});
+  if(!foundSec.competences)issues.push({type:'warning',title:'Section "Compétences" absente',desc:'Crée une section dédiée avec tous tes outils et langages. C\'est là que les ATS cherchent les mots-clés.'});
+  var emails=t.match(EMAIL_RE)||[];
+  var hasPhone=PHONE_RE.test(t),hasLinkedIn=LINKEDIN_RE.test(t);
+  var otherUrls=(t.match(URL_RE)||[]).filter(function(u){return !/linkedin/i.test(u);});
+  var contactScore=15+(emails.length>0?35:0)+(hasPhone?30:0)+(hasLinkedIn?20:0);
+  checklist.push({text:'Email présent',state:emails.length>0?'pass':'fail',note:emails.length>0?emails[0]:'Introuvable — critique'});
+  checklist.push({text:'Téléphone présent',state:hasPhone?'pass':'fail',note:hasPhone?'':'Introuvable'});
+  checklist.push({text:'LinkedIn présent',state:hasLinkedIn?'pass':'warn',note:hasLinkedIn?'':'Très recommandé'});
+  if(otherUrls.length>0)checklist.push({text:'Liens ('+otherUrls.length+')',state:'pass',note:'Portfolio/GitHub détecté'});
+  if(emails.length===0)issues.push({type:'critical',title:'Email introuvable',desc:'Place ton email en texte dans le corps du document, pas dans un en-tête graphique.'});
+  if(!hasPhone)issues.push({type:'critical',title:'Téléphone introuvable',desc:'Format : 06 XX XX XX XX ou +33 6 XX XX XX XX.'});
+  if(!hasLinkedIn)issues.push({type:'tip',title:'Ajoute ton LinkedIn',desc:'linkedin.com/in/ton-profil dans tes coordonnées.'});
+  var exps=extractExps(t),gaps=detectGaps(exps);
+  var allYears=t.match(DATE_YEAR)||[];
+  var yearNums=allYears.map(Number).filter(function(y){return !isNaN(y);});
+  var maxYear=yearNums.length>0?Math.max.apply(null,yearNums):0;
+  var isRecent=maxYear>=new Date().getFullYear()-2;
+  var totalExpYrs=exps.reduce(function(s,e){return s+e.duration;},0);
+  var dateScore=allYears.length===0?0:!isRecent?50:100;
+  if(allYears.length===0)issues.push({type:'critical',title:'Aucune date détectée',desc:'Chaque expérience doit avoir une période : "2021 – 2024".'});
+  else if(!isRecent)issues.push({type:'warning',title:'Pas d\'expérience récente',desc:'Dernière date : '+maxYear+'. Mets à jour ton CV.'});
+  if(gaps.length>0)gaps.forEach(function(g){issues.push({type:'warning',title:'Trou : '+g.from+' – '+g.to+' ('+g.years+' an(s))',desc:'Prépare une explication : formation, projet perso, raison familiale.'});});
+  checklist.push({text:'Dates ('+allYears.length+')',state:allYears.length>0?'pass':'fail',note:allYears.length===0?'Ajoute les années':''});
+  checklist.push({text:'Expérience récente',state:isRecent?'pass':'warn',note:isRecent?'':'Dernière date : '+maxYear});
+  checklist.push({text:'Continuité',state:gaps.length===0?'pass':'warn',note:gaps.length>0?gaps.length+' trou(s)':'Aucun trou'});
+  var avgDur=exps.length>1?totalExpYrs/exps.length:99;
+  var stability=avgDur<1?'Instable':avgDur>=2?'Solide':'Stable';
+  if(avgDur<1)issues.push({type:'warning',title:'Forte mobilité',desc:'Durée moy. par poste : '+avgDur.toFixed(1)+' an. Explique si c\'était des missions courtes.'});
+  var expLevel=totalExpYrs>=10?'expert':totalExpYrs>=6?'senior':totalExpYrs>=3?'mid':'junior';
+  var contractType='Non détecté';
+  if(/stage|stagiaire/i.test(t))contractType='STAGE';
+  else if(/alternance|apprentissage/i.test(t))contractType='ALTERNANCE';
+  else if(/cdi/i.test(t))contractType='CDI';
+  else if(/cdd/i.test(t))contractType='CDD';
+  else if(/freelance|indépendant/i.test(t))contractType='FREELANCE';
+  var foundTech=TECH_SKILLS.filter(function(s){return tl.includes(s);});
+  var techScore=Math.min(100,(foundTech.length/8)*100);
+  checklist.push({text:'Compétences tech ('+foundTech.length+')',state:foundTech.length>=5?'pass':foundTech.length>=2?'warn':'fail',note:foundTech.length>0?foundTech.slice(0,4).join(', ')+(foundTech.length>4?'…':''):'Aucun outil détecté'});
+  if(foundTech.length<4)issues.push({type:'warning',title:'Peu de compétences tech ('+foundTech.length+')',desc:'Liste tous tes outils, logiciels, langages. Les ATS font du matching exact.'});
+  var foundSoft=SOFT_SKILLS.filter(function(s){return tl.includes(s);});
+  checklist.push({text:'Soft skills ('+foundSoft.length+')',state:foundSoft.length>=3?'pass':'warn',note:foundSoft.slice(0,3).join(', ')||'Aucune détectée'});
+  if(foundSoft.length<2)issues.push({type:'tip',title:'Soft skills absentes',desc:'Intègre-les en contexte dans tes missions : "management d\'équipe", "leadership", "communication".'});
+  var foundLangs=[];
+  Object.keys(LANGUAGES).forEach(function(lang){if(LANGUAGES[lang].some(function(kw){return tl.includes(kw);}))foundLangs.push(lang);});
+  checklist.push({text:'Langues ('+foundLangs.length+')',state:foundLangs.length>0?'pass':'warn',note:foundLangs.length>0?foundLangs.join(', '):'Aucune détectée'});
+  if(!foundLangs.includes('anglais'))issues.push({type:'tip',title:'Anglais non mentionné',desc:'Même un A2 vaut la peine. Précise le niveau (B1, B2, C1, C2) et les certifications.'});
+  var quantCount=QUANTIFIERS.filter(function(re){return re.test(t);}).length;
+  var hasQuant=quantCount>=2;
+  checklist.push({text:'Chiffres ('+quantCount+')',state:quantCount>=3?'pass':quantCount>=1?'warn':'fail',note:hasQuant?'Bonne présence':'Ajoute des résultats concrets'});
+  if(quantCount<2)issues.push({type:'warning',title:'Manque de chiffres',desc:'"Géré 8 personnes", "+25% CA", "-30% coûts". Vise au moins 3 résultats chiffrés.'});
+  var actionVerbs=['géré','développé','créé','optimisé','réduit','augmenté','piloté','coordonné','animé','formé','conçu','réalisé','déployé','mis en place','lancé','négocié','supervisé','analysé','dirigé','amélioré','implémenté','livré','construit','établi','défini'];
+  var foundVerbs=actionVerbs.filter(function(v){return tl.includes(v);});
+  checklist.push({text:'Verbes d\'action ('+foundVerbs.length+')',state:foundVerbs.length>=4?'pass':'warn',note:foundVerbs.slice(0,3).join(', ')||''});
+  if(foundVerbs.length<3)issues.push({type:'tip',title:'Peu de verbes d\'action',desc:'Commence chaque bullet par : Piloté, Développé, Optimisé, Réduit, Augmenté.'});
+  var formatScore=100;
+  var specials=(t.match(/[★☆●►▪▸◦•❖✦]/g)||[]).length;
+  var emojis=(t.match(/\p{Emoji}/gu)||[]).filter(function(e){return !/[0-9*#]/u.test(e);}).length;
+  var caps=(t.match(/[A-ZÀÂÄÉÈÊËÎÏÔÙÛÜ]{6,}/g)||[]).length;
+  if(specials>5){formatScore-=15;issues.push({type:'warning',title:specials+' symboles décoratifs',desc:'Les ★ ● ► perturbent certains ATS. Utilise des tirets simples (-) ou puces standard.'});}
+  if(emojis>1){formatScore-=15;issues.push({type:'warning',title:emojis+' emojis',desc:'Les emojis sont transcrits en codes "[EMOJI]" par certains ATS. Supprime-les.'});}
+  if(caps>8){formatScore-=10;issues.push({type:'tip',title:caps+' mots en MAJUSCULES',desc:'Trop de CAPS perturbent l\'analyse lexicale. Utilise le gras plutôt.'});}
+  checklist.push({text:'Mise en forme',state:specials<=5&&emojis<=1?'pass':'warn',note:specials>5?specials+' symboles déco':emojis>1?emojis+' emojis':''});
+  var hasTitle=/^.{0,60}(développeur|ingénieur|chef de projet|manager|directeur|responsable|consultant|analyste|designer|commercial|chargé|coordinateur|expert|lead|architecte|product|data|devops|frontend|backend|comptable|avocat)/im.test(t);
+  checklist.push({text:'Titre de poste',state:hasTitle?'pass':'warn',note:hasTitle?'Détecté':'Ajoute un titre clair en haut'});
+  if(!hasTitle)issues.push({type:'warning',title:'Titre de poste manquant',desc:'Première ligne de ton CV : "Développeur Full Stack — 5 ans d\'expérience". C\'est le premier filtre ATS.'});
+  var diplomaLevel='Non détecté';
+  if(/doctorat|phd|thèse/i.test(t))diplomaLevel='Doctorat';
+  else if(/master|bac\+5|ingénieur|grande école/i.test(t))diplomaLevel='Master / Bac+5';
+  else if(/\blicence\b|bachelor|bac\+3/i.test(t))diplomaLevel='Licence / Bac+3';
+  else if(/bts|dut|bac\+2/i.test(t))diplomaLevel='BTS / DUT';
+  else if(/\bbac\b/i.test(t))diplomaLevel='Baccalauréat';
+  checklist.push({text:'Diplôme',state:diplomaLevel!=='Non détecté'?'pass':'warn',note:diplomaLevel});
+  var hasTelework=/télétravail|remote|hybride|distanciel/i.test(t);
+  var hasLocation=/paris|lyon|marseille|bordeaux|toulouse|nantes|lille|strasbourg|nice|montpellier|france/i.test(t);
+  var hasAvail=/disponible|disponibilité|immédiatement|préavis|à partir de/i.test(t);
+  var hasWorkAuth=/nationalité française|ressortissant ue|citoyen européen/i.test(t);
+  checklist.push({text:'Localisation',state:hasLocation?'pass':'warn',note:hasLocation?'':'Indique ta ville/région'});
+  checklist.push({text:'Disponibilité',state:hasAvail?'pass':'warn',note:hasAvail?'':'Ajoute ta dispo ou préavis'});
+  checklist.push({text:'Télétravail',state:hasTelework?'pass':'info',note:hasTelework?'Détecté':'Optionnel'});
+  checklist.push({text:'Auth. travail',state:hasWorkAuth?'pass':'info',note:hasWorkAuth?'':'Optionnel (UE)'});
+  if(!hasLocation)issues.push({type:'tip',title:'Localisation manquante',desc:'Indique ta ville + département. Certains ATS géo-filtrent.'});
+  if(!hasAvail)issues.push({type:'tip',title:'Disponibilité non renseignée',desc:'"Disponible immédiatement" ou "Préavis de X mois" — certains ATS filtrent là-dessus.'});
+  var jobMatch=analyzeJobMatch(t,jobOffer);
+  var allKw=TECH_SKILLS.concat(SOFT_SKILLS.slice(0,20));
+  var kwFound=allKw.filter(function(k){return tl.includes(k);});
+  var kwMissing=TECH_SKILLS.filter(function(k){return !tl.includes(k);}).slice(0,20);
+  var kwScore=Math.min(100,(kwFound.length/15)*100);
+  var W={parsing:.08,length:.08,sections:.20,contact:.10,dates:.12,tech:.14,format:.08,quant:.08,soft:.06,lang:.06};
+  var raw=100*W.parsing+lengthScore*W.length+sectionScore*W.sections+contactScore*W.contact+dateScore*W.dates+techScore*W.tech+formatScore*W.format+(hasQuant?100:30)*W.quant+(foundSoft.length>=3?100:foundSoft.length*25)*W.soft+(foundLangs.length>0?100:0)*W.lang;
+  var score=Math.round(Math.max(0,Math.min(100,raw)));
+  var grade=score>=85?'A':score>=70?'B':score>=55?'C':score>=40?'D':'E';
+  var VERD={A:['EXCELLENT','Ton CV est une arme. Personnalise maintenant les mots-clés pour chaque offre. 🎯'],B:['BON','Ton CV passe la plupart des filtres. Quelques ajustements et tu es dans le top.'],C:['PASSABLE','Des problèmes risquent de te filtrer. Traite les points rouges en priorité.'],D:['FAIBLE','Ton CV sera éliminé par la plupart des ATS. Refonte nécessaire.'],E:['CRITIQUE','Éliminé automatiquement. Refonte complète obligatoire.']};
+  var subScores=[
+    {label:'Format',val:Math.round(100*.7+formatScore*.3),pct:Math.round(100*.7+formatScore*.3)},
+    {label:'Structure',val:Math.round(sectionScore),pct:Math.round(sectionScore)},
+    {label:'Contenu',val:Math.round(lengthScore*.4+(foundVerbs.length>=4?100:foundVerbs.length*25)*.3+(hasQuant?100:30)*.3),pct:Math.round(lengthScore*.4+(foundVerbs.length>=4?100:foundVerbs.length*25)*.3+(hasQuant?100:30)*.3)},
+    {label:'Contact',val:Math.round(contactScore),pct:Math.round(contactScore)},
+    {label:'Chrono',val:Math.round(dateScore),pct:Math.round(dateScore)},
+    {label:'Compét.',val:Math.round(techScore*.6+kwScore*.2+(foundSoft.length>=3?100:foundSoft.length*25)*.2),pct:Math.round(techScore*.6+kwScore*.2+(foundSoft.length>=3?100:foundSoft.length*25)*.2)},
+    {label:'Mots-clés',val:Math.round(kwScore),pct:Math.round(kwScore)},
+    {label:'Langue/Géo',val:Math.round((foundLangs.length>0?80:0)*.6+(hasLocation?80:0)*.4),pct:Math.round((foundLangs.length>0?80:0)*.6+(hasLocation?100:0)*.4)},
+  ];
+  return {score:score,grade:grade,verdict:VERD[grade][0],verdictDesc:VERD[grade][1],issues:issues,checklist:checklist,subScores:subScores,kwFound:kwFound,kwMissing:kwMissing,jobMatch:jobMatch,experiences:exps,gaps:gaps,
+    info:{wordCount:wordCount,pageCount:pageCount||1,expLevel:expLevel,contractType:contractType,totalExpYrs:totalExpYrs,emails:emails,hasPhone:hasPhone,hasLinkedIn:hasLinkedIn,otherUrls:otherUrls,foundTech:foundTech,foundSoft:foundSoft,foundLangs:foundLangs,diplomaLevel:diplomaLevel,specials:specials,emojis:emojis,quantCount:quantCount,foundVerbs:foundVerbs,hasTitle:hasTitle,hasTelework:hasTelework,hasLocation:hasLocation,hasAvail:hasAvail,hasWorkAuth:hasWorkAuth,stability:stability}};
+}
+
+// ══ CONFETTI ══
+function launchConfetti(score){
+  if(score<70)return;
+  var wrap=document.getElementById('confettiWrap');
+  var colors=['#d4ff00','#00e87a','#00c4ff','#ff3b5c','#ff9f0a','#bf5fff'];
+  for(var i=0;i<60;i++){
+    var cf=document.createElement('div');
+    cf.className='cf';
+    cf.style.cssText='left:'+Math.random()*100+'vw;top:-20px;background:'+colors[Math.floor(Math.random()*colors.length)]+';width:'+(6+Math.random()*8)+'px;height:'+(6+Math.random()*8)+'px;animation-duration:'+(1.5+Math.random()*2.5)+'s;animation-delay:'+(Math.random()*.8)+'s;border-radius:'+(Math.random()>0.5?'50%':'2px');
+    wrap.appendChild(cf);
+    setTimeout(function(el){return function(){el.remove();};}(cf),4000);
+  }
+}
+
+// ══ RUN ══
+var STEPS=['SCAN DU FICHIER...','EXTRACTION DU TEXTE...','ANALYSE ATS...','VÉRIFICATION DES MOTS-CLÉS...','CALCUL DU SCORE...'];
+var stepTmr=null,lastResult=null,lastFilename='';
+
+document.getElementById('analyzeBtn').addEventListener('click',runAnalysis);
+
+async function runAnalysis(){
+  if(!cvFile)return;
+  document.getElementById('uploadArea').style.display='none';
+  document.getElementById('results').classList.remove('show');
+  var loader=document.getElementById('loader');loader.classList.add('show');
+  var si=0;
+  stepTmr=setInterval(function(){si=(si+1)%STEPS.length;document.getElementById('loaderStep').textContent=STEPS[si];},650);
+  if(!cvText){var r=await extractText(cvFile);cvText=r.text;cvPages=r.pages;}
+  await new Promise(function(res){setTimeout(res,2000);});
+  clearInterval(stepTmr);loader.classList.remove('show');
+  var jo=document.getElementById('jobOffer').value;
+  var res=analyzeATS(cvText,cvFile.name,jo,cvPages||1);
+  lastResult=res;lastFilename=cvFile.name;
+  incCount();
+  renderResults(res);
+  launchConfetti(res.score);
+}
+
+// ══ RENDER ══
+var CIRC=263.9;
+function sc(p){return p>=70?'cg':p>=45?'ca':'cr';}
+function pc(p){return p>=70?'var(--green)':p>=45?'var(--amb)':'var(--red)';}
+function stk(s){return s>=70?'#00e87a':s>=45?'#ff9f0a':'#ff3b5c';}
+var GS={A:'background:rgba(0,232,122,.15);color:#00e87a',B:'background:rgba(212,255,0,.1);color:#d4ff00',C:'background:rgba(255,159,10,.15);color:#ff9f0a',D:'background:rgba(255,59,92,.12);color:#ff3b5c',E:'background:rgba(255,59,92,.2);color:#ff3b5c'};
+
+function renderResults(res){
+  var s=res.score;
+  document.getElementById('scoreNum').textContent=s;
+  document.getElementById('scoreVerdict').textContent=res.verdict;
+  document.getElementById('scoreDesc').textContent=res.verdictDesc;
+  var arc=document.getElementById('scoreArc');
+  arc.style.stroke=stk(s);
+  setTimeout(function(){arc.style.strokeDashoffset=CIRC-(s/100)*CIRC;},80);
+  var gb=document.getElementById('gradeBadge');gb.textContent=res.grade;gb.style.cssText=GS[res.grade]||GS.E;
+  var info=res.info||{};
+  document.getElementById('quickMetrics').innerHTML=[
+    {l:'Score ATS',v:s+'/100',c:sc(s),s:res.grade+' — '+res.verdict},
+    {l:'Mots extraits',v:info.wordCount||0,c:'cl',s:'~'+(info.pageCount||1)+' page(s)'},
+    {l:'Expérience',v:(info.totalExpYrs||0)+'ans',c:sc(Math.min(100,(info.totalExpYrs||0)*10)),s:(info.expLevel||'').toUpperCase()},
+  ].map(function(m){return '<div class="mc"><div class="mc-l">'+m.l+'</div><div class="mc-v '+m.c+'">'+m.v+'</div><div class="mc-s">'+m.s+'</div></div>';}).join('');
+  if(res.jobMatch){
+    var jm=res.jobMatch;
+    document.getElementById('matchSection').style.display='block';
+    document.getElementById('matchPct').textContent=jm.pct+'%';
+    setTimeout(function(){document.getElementById('matchBar').style.width=jm.pct+'%';},100);
+    document.getElementById('matchDetails').innerHTML=
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px">'+
+      '<div><div class="card-ttl" style="margin-bottom:7px">Trouvés ✓</div><div class="kw-wrap">'+jm.foundList.slice(0,12).map(function(k){return '<span class="kw match">'+k+'</span>';}).join('')+'</div></div>'+
+      '<div><div class="card-ttl" style="margin-bottom:7px">Manquants ✗</div><div class="kw-wrap">'+jm.missingList.slice(0,12).map(function(k){return '<span class="kw miss">'+k+'</span>';}).join('')+'</div></div></div>'+
+      '<div class="tip-box" style="margin-top:12px"><b>Conseil :</b> Intègre naturellement les mots-clés manquants qui correspondent à ton profil réel.</div>';
+  }
+  var tabs=[
+    {id:'overview',label:'VUE D\'ENS.',count:''},
+    {id:'chrono',label:'CHRONO',count:(res.experiences||[]).length},
+    {id:'skills',label:'COMPÉT.',count:(info.foundTech||[]).length},
+    {id:'checklist',label:'CHECKLIST',count:(res.checklist||[]).filter(function(c){return c.state==='fail';}).length||''},
+    {id:'issues',label:'ISSUES',count:(res.issues||[]).length},
+    {id:'plan',label:'PLAN',count:''},
+    {id:'infos',label:'INFOS',count:''},
+  ];
+  document.getElementById('tabBar').innerHTML=tabs.map(function(t,i){
+    return '<button class="tab'+(i===0?' active':'')+'" data-tab="'+t.id+'">'+t.label+(t.count!==''&&t.count>0?'<span class="tab-ct">'+t.count+'</span>':'')+'</button>';
+  }).join('');
+  document.querySelectorAll('.tab').forEach(function(btn){btn.addEventListener('click',function(){switchTab(btn.dataset.tab,btn);});});
+  var panels={overview:renderOverview(res),chrono:renderChrono(res),skills:renderSkills(res),checklist:renderChecklist(res),issues:renderIssues(res),plan:renderPlan(res),infos:renderInfos(res)};
+  document.getElementById('tabPanels').innerHTML=Object.keys(panels).map(function(id,i){return '<div id="panel-'+id+'" class="tab-panel'+(i===0?' active':'')+'">'+panels[id]+'</div>';}).join('');
+  // Publish button
+  var bar=document.getElementById('results').querySelector('.res-bar');
+  var existing=document.getElementById('btnPublishLB');
+  if(existing)existing.remove();
+  var pb=document.createElement('button');pb.id='btnPublishLB';pb.className='lb-add-btn';pb.textContent='📤 Publier';pb.style.fontSize='11px';pb.style.padding='6px 12px';
+  pb.addEventListener('click',openSubmitModal);bar.appendChild(pb);
+  setTimeout(function(){document.querySelectorAll('.pb-fill').forEach(function(el){el.style.width=el.dataset.w+'%';});},120);
+  document.getElementById('results').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderOverview(res){
+  var bars=(res.subScores||[]).map(function(sub){var col=pc(sub.pct);return '<div class="pb-row"><div class="pb-lbls"><span class="pb-l">'+sub.label+'</span><span class="pb-v" style="color:'+col+'">'+sub.val+'/100</span></div><div class="pb-track"><div class="pb-fill" data-w="'+sub.pct+'" style="background:'+col+'"></div></div></div>';}).join('');
+  return '<div class="card"><div class="card-hd"><div class="card-ttl">// scores par dimension</div></div><div class="pbars">'+bars+'</div></div>';
+}
+function renderChrono(res){
+  var exps=res.experiences||[],gaps=res.gaps||[],info=res.info||{};
+  if(exps.length===0)return '<div class="card"><p style="color:var(--tx3);font-size:13px;font-family:var(--mono)">Aucune expérience avec dates précises. Vérifie le format : "2021 – 2024".</p></div>';
+  var m4='<div class="m3" style="grid-template-columns:repeat(4,1fr);margin-bottom:13px"><div class="mc"><div class="mc-l">Postes</div><div class="mc-v cl">'+exps.length+'</div></div><div class="mc"><div class="mc-l">Exp. totale</div><div class="mc-v '+(sc(Math.min(100,(info.totalExpYrs||0)*10)))+'">'+(info.totalExpYrs||0)+'ans</div></div><div class="mc"><div class="mc-l">Stabilité</div><div class="mc-v '+(info.stability==='Instable'?'cr':info.stability==='Solide'?'cg':'ca')+'">'+info.stability+'</div></div><div class="mc"><div class="mc-l">Trous</div><div class="mc-v '+(gaps.length===0?'cg':'ca')+'">'+gaps.length+'</div></div></div>';
+  var tl='<div class="card"><div class="card-ttl" style="margin-bottom:14px">// timeline</div><div class="timeline">';
+  exps.forEach(function(e){tl+='<div class="tl-item"><div class="tl-dot"></div><div class="tl-per">'+e.start+' — '+(e.ongoing?'Maintenant':e.end)+'</div><div class="tl-ttl">'+e.context.substring(0,58).trim()+'…</div><div class="tl-dur">'+e.duration+' an(s)</div></div>';});
+  if(gaps.length>0)gaps.forEach(function(g){tl+='<div class="tl-item"><div class="tl-dot gap"></div><div class="tl-per">'+g.from+' – '+g.to+'</div><div class="tl-gap">⚠ Trou : '+g.years+' an(s) — prépare une explication</div></div>';});
+  tl+='</div></div>';
+  var lvl=info.expLevel||'mid';
+  var lvlT={junior:'👤 JUNIOR (< 3 ans)',mid:'👔 CONFIRMÉ (3-6 ans)',senior:'⭐ SENIOR (6+ ans)',expert:'🔥 EXPERT (10+ ans)'};
+  return m4+tl+'<div class="card"><div class="card-ttl" style="margin-bottom:11px">// niveau estimé</div><div class="lvl-badge '+lvl+'">'+(lvlT[lvl]||lvlT.mid)+'</div><p style="font-size:13px;color:var(--tx2)">Basé sur '+(info.totalExpYrs||0)+' années détectées. Peut différer selon tes responsabilités réelles.</p></div>';
+}
+function renderSkills(res){
+  var info=res.info||{},tech=info.foundTech||[],soft=info.foundSoft||[],langs=info.foundLangs||[];
+  return '<div class="card"><div class="card-ttl" style="margin-bottom:11px">// tech stack ('+tech.length+')</div>'+(tech.length>0?'<div class="kw-wrap">'+tech.map(function(k){return '<span class="kw found">'+k+'</span>';}).join('')+'</div>':'<p style="font-size:13px;color:var(--tx3);font-family:var(--mono)">Aucune compétence technique reconnue.</p>')+'</div>'+
+    '<div class="card"><div class="card-ttl" style="margin-bottom:11px">// soft skills ('+soft.length+')</div>'+(soft.length>0?'<div class="kw-wrap">'+soft.map(function(k){return '<span class="kw found">'+k+'</span>';}).join('')+'</div>':'<p style="font-size:13px;color:var(--tx3)">Aucune soft skill.</p>')+'</div>'+
+    '<div class="card"><div class="card-ttl" style="margin-bottom:11px">// langues ('+langs.length+')</div>'+(langs.length>0?'<div class="kw-wrap">'+langs.map(function(l){return '<span class="kw found">'+l+'</span>';}).join('')+'</div>':'<p style="font-size:13px;color:var(--tx3)">Aucune langue.</p>')+'<div class="tip-box" style="margin-top:11px"><b>Conseil :</b> Précise les niveaux A1→C2 et tes certifications (TOEIC, DELF…).</div></div>'+
+    '<div class="card"><div class="card-ttl" style="margin-bottom:11px">// mots-clés manquants</div><div class="kw-wrap">'+(res.kwMissing||[]).map(function(k){return '<span class="kw miss">'+k+'</span>';}).join('')+'</div><div class="tip-box" style="margin-top:11px"><b>Note :</b> Ajoute uniquement ce qui correspond à ton profil réel.</div></div>';
+}
+function renderChecklist(res){
+  var items=res.checklist||[],pass=items.filter(function(c){return c.state==='pass';}).length;
+  var pct=Math.round(pass/Math.max(items.length,1)*100);
+  var col=pct>=70?'var(--green)':pct>=45?'var(--amb)':'var(--red)';
+  return '<div class="card"><div class="card-hd"><div class="card-ttl">// '+pass+'/'+items.length+' critères</div><span style="font-family:Space Mono,monospace;font-size:12px;font-weight:700;color:'+col+'">'+pct+'%</span></div><div class="cl">'+
+    items.map(function(c){return '<div class="ci"><div class="ci-box '+c.state+'">'+(c.state==='pass'?'✓':c.state==='fail'?'✗':c.state==='info'?'i':'~')+'</div><div><div class="ci-tx">'+c.text+'</div>'+(c.note?'<div class="ci-nt">'+c.note+'</div>':'')+'</div></div>';}).join('')+'</div></div>';
+}
+function renderIssues(res){
+  var issues=res.issues||[];
+  function block(arr,type){var ico=type==='critical'?'✕':type==='warning'?'!':'→';var lbl=type==='critical'?'CRITIQUE':type==='warning'?'WARNING':'TIP';return arr.map(function(i){return '<div class="issue '+type+'"><div class="i-ico">'+ico+'</div><div><div class="i-ttl">'+i.title+'<span class="i-bdg">'+lbl+'</span></div><div class="i-desc">'+i.desc+'</div></div></div>';}).join('');}
+  var crits=issues.filter(function(i){return i.type==='critical';}),warns=issues.filter(function(i){return i.type==='warning';}),tips=issues.filter(function(i){return i.type==='tip';});
+  var out='';
+  if(crits.length>0)out+='<div class="card"><div class="card-ttl" style="margin-bottom:12px">// critiques ('+crits.length+')</div><div class="issues">'+block(crits,'critical')+'</div></div>';
+  if(warns.length>0)out+='<div class="card"><div class="card-ttl" style="margin-bottom:12px">// warnings ('+warns.length+')</div><div class="issues">'+block(warns,'warning')+'</div></div>';
+  if(tips.length>0)out+='<div class="card"><div class="card-ttl" style="margin-bottom:12px">// tips ('+tips.length+')</div><div class="issues">'+block(tips,'tip')+'</div></div>';
+  return out||'<div class="card"><p style="color:var(--green);font-family:Space Mono,monospace">✓ Aucun problème critique détecté.</p></div>';
+}
+function renderPlan(res){
+  var info=res.info||{},s=res.score,steps=[];
+  if((info.wordCount||0)<300)steps.push({p:'urgent',ico:'📝',title:'Enrichis ton contenu',detail:'~'+(info.wordCount||0)+' mots seulement. Vise 400–700 mots. 3–5 bullet points par poste avec missions et résultats.'});
+  if((info.emails||[]).length===0)steps.push({p:'urgent',ico:'📧',title:'Ajoute ton email',detail:'Email introuvable. Place prenom.nom@email.com en texte dans le corps.'});
+  if(!info.hasPhone)steps.push({p:'urgent',ico:'📞',title:'Ajoute ton téléphone',detail:'Format : 06 XX XX XX XX ou +33 6 XX XX XX XX.'});
+  if(!(res.checklist||[]).some(function(c){return c.text.includes('Expérience')&&c.state==='pass';}))steps.push({p:'urgent',ico:'🗂️',title:'Section "Expérience professionnelle"',detail:'Titre exact obligatoire. Évite les titres créatifs non reconnus par les ATS.'});
+  if(!(res.checklist||[]).some(function(c){return c.text.includes('Formation')&&c.state==='pass';}))steps.push({p:'urgent',ico:'🎓',title:'Section "Formation"',detail:'Titre exact : "Formation". Diplôme + niveau + établissement + années.'});
+  if((info.foundTech||[]).length<5)steps.push({p:'important',ico:'🔧',title:'Liste tes compétences techniques',detail:(info.foundTech||[]).length+' outil(s) détecté(s). Crée une section "Compétences" avec tous tes outils et langages.'});
+  if((info.quantCount||0)<2)steps.push({p:'important',ico:'📊',title:'Ajoute des résultats chiffrés',detail:'"Géré 6 personnes", "+25% CA", "-30% délais". Vise au moins 3 métriques concrètes.'});
+  if((info.foundVerbs||[]).length<3)steps.push({p:'important',ico:'⚡',title:'Verbes d\'action',detail:'Piloté, Développé, Optimisé, Réduit, Lancé, Coordonné — commence chaque bullet par un verbe fort.'});
+  if(!info.hasLinkedIn)steps.push({p:'recommande',ico:'💼',title:'Ajoute LinkedIn',detail:'linkedin.com/in/ton-profil dans tes coordonnées.'});
+  if((info.foundLangs||[]).length===0)steps.push({p:'recommande',ico:'🌍',title:'Langues avec niveaux',detail:'Français (Natif), Anglais (B2/C1)... Précise les certifications.'});
+  if(!info.hasAvail)steps.push({p:'recommande',ico:'📆',title:'Disponibilité',detail:'"Disponible immédiatement" ou "Préavis de 3 mois".'});
+  var PS={urgent:'border-left-color:var(--red)',important:'border-left-color:var(--amb)',recommande:'border-left-color:var(--blue)'};
+  var PL={urgent:'URGENT',important:'IMPORTANT',recommande:'TIPS'};
+  var PCS={urgent:'background:var(--rbg);color:var(--red)',important:'background:var(--abg);color:var(--amb)',recommande:'background:var(--bbg);color:var(--blue)'};
+  var global=s>=80?'<div style="background:var(--gbg);border:1px solid var(--gbd);border-radius:var(--r);padding:14px 17px;margin-bottom:16px;font-size:13px;color:var(--green);line-height:1.65"><b style="color:var(--tx);font-family:Space Mono,monospace">NIVEAU S !</b> Ton CV est une machine. Personnalise maintenant pour chaque offre.</div>':
+    s>=60?'<div style="background:var(--abg);border:1px solid var(--abd);border-radius:var(--r);padding:14px 17px;margin-bottom:16px;font-size:13px;color:var(--amb);line-height:1.65"><b style="color:var(--tx);font-family:Space Mono,monospace">BON NIVEAU.</b> Traite les points ci-dessous pour passer dans la zone verte.</div>':
+    '<div style="background:var(--rbg);border:1px solid var(--rbd);border-radius:var(--r);padding:14px 17px;margin-bottom:16px;font-size:13px;color:var(--red);line-height:1.65"><b style="color:var(--tx);font-family:Space Mono,monospace">REFONTE NÉCESSAIRE.</b> Les points rouges sont critiques — commence par eux.</div>';
+  var stepsHtml=steps.length>0?steps.map(function(step,i){return '<div class="plan-step" style="'+PS[step.p]+'"><div class="ps-ico">'+step.ico+'</div><div class="ps-body"><div class="ps-title">'+(i+1)+'. '+step.title+'<span class="ps-badge" style="'+PCS[step.p]+'">'+PL[step.p]+'</span></div><div class="ps-detail">'+step.detail+'</div></div></div>';}).join(''):'<div style="background:var(--gbg);border:1px solid var(--gbd);border-radius:var(--r);padding:16px;text-align:center;color:var(--green);font-family:Space Mono,monospace">✓ AUCUNE ACTION REQUISE. GG.</div>';
+  var tips10=['<b>1 page max</b> (2 si 10+ ans d\'expérience) — certains ATS tronquent.','<b>Police simple</b> : Calibri, Arial, Georgia. Pas de fantaisie.','<b>Mono-colonne</b> — les double-colonnes sont souvent mal parsées.','<b>Pas de tableaux</b> — souvent mal interprétés.','<b>Personnalise pour chaque offre</b> — copie les mots exacts de l\'offre dans ton CV.','<b>Synonymes</b> : "développeur" ≠ "programmeur" pour certains ATS. Utilise les termes exacts.','<b>PDF texte uniquement</b> — teste : peut-on sélectionner le texte ?','<b>Résultats chiffrés</b> — chaque expérience doit avoir au moins 1 métrique.','<b>Marges : 2cm</b> — ni trop chargé ni trop vide.','<b>Mise à jour régulière</b> — un CV daté de 6 mois peut sembler abandonné.'];
+  return global+'<div class="card"><div class="card-ttl" style="margin-bottom:14px">// plan d\'action ('+steps.length+')</div>'+stepsHtml+'</div><div class="card"><div class="card-ttl" style="margin-bottom:13px">// 10 règles d\'or ATS</div><div style="display:flex;flex-direction:column;gap:8px">'+tips10.map(function(tip){return '<div style="display:flex;gap:10px;padding:10px 12px;background:var(--bg3);border-radius:8px"><span style="color:var(--lime);font-family:Space Mono,monospace;font-weight:700;flex-shrink:0">→</span><span style="font-size:13px;color:var(--tx2);line-height:1.6">'+tip+'</span></div>';}).join('')+'</div></div>';
+}
+function renderInfos(res){
+  var info=res.info||{};
+  var rows=[['Mots',info.wordCount||'—'],['Pages',info.pageCount||'—'],['Parsing',info.parsingQuality||info.wordCount>150?'Excellent':info.wordCount>80?'Correct':'Faible'],['Niveau',info.expLevel||'—'],['Expérience',(info.totalExpYrs||0)+' ans'],['Contrat',info.contractType||'—'],['Diplôme',info.diplomaLevel||'—'],['Email',(info.emails||[]).length>0?info.emails[0]:'✗ manquant'],['Téléphone',info.hasPhone?'✓':'✗ manquant'],['LinkedIn',info.hasLinkedIn?'✓':'✗'],['Portfolio',(info.otherUrls||[]).length>0?(info.otherUrls.length)+' url(s)':'—'],['Ville',info.hasLocation?'✓ détectée':'✗'],['Dispo',info.hasAvail?'✓':'✗'],['Télétravail',info.hasTelework?'✓':'—'],['Auth.',info.hasWorkAuth?'✓':'—'],['Langues',(info.foundLangs||[]).join(', ')||'—'],['Chiffres',(info.quantCount||0)+' occurrence(s)'],['Verbes',(info.foundVerbs||[]).length+' détectés'],['Symboles',(info.specials||0)+(info.specials>5?' ⚠':' ✓')]];
+  return '<div class="card"><div class="card-ttl" style="margin-bottom:13px">// toutes les données</div><div class="info-grid">'+rows.map(function(r){return '<div class="info-row"><div class="info-k">'+r[0]+'</div><div class="info-v'+(r[1]==='✗ manquant'||r[1]==='✗'?' na':'')+'">'+r[1]+'</div></div>';}).join('')+'</div></div>';
+}
+
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  var panel=document.getElementById('panel-'+id);if(panel)panel.classList.add('active');
+}
+
+document.getElementById('btnNewCV').addEventListener('click',function(){
+  resetFile();document.getElementById('results').classList.remove('show');
+  document.getElementById('uploadArea').style.display='';
+  document.getElementById('jobOffer').value='';cvText='';cvPages=0;
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+// ══ PAGE ROUTER ══
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.sb-item[data-page]').forEach(function(i){i.classList.toggle('active',i.dataset.page===name);});
+  var mc=document.getElementById('mainContent');
+  if(name==='home'){mc.style.display='';} 
+  else{mc.style.display='none';var pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');}
+  if(name==='leaderboard')renderLeaderboard();
+  if(name==='domains')renderDomainGrid();
+  closeSidebar();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// Logo = retour accueil
+document.getElementById('navLogo').addEventListener('click',function(){showPage('home');});
+
+document.querySelectorAll('.sb-item[data-page]').forEach(function(item){item.addEventListener('click',function(){showPage(item.dataset.page);});});
+document.getElementById('backLB').addEventListener('click',function(){showPage('home');});
+document.getElementById('backDomains').addEventListener('click',function(){showPage('home');});
+
+// ══ SIDEBAR ══
+var sidebar=document.getElementById('sidebar'),sbOverlay=document.getElementById('sbOverlay');
+function openSidebar(){sidebar.classList.add('open');sbOverlay.classList.add('open');document.body.style.overflow='hidden';}
+function closeSidebar(){sidebar.classList.remove('open');sbOverlay.classList.remove('open');document.body.style.overflow='';}
+document.getElementById('btnMenu').addEventListener('click',openSidebar);
+document.getElementById('sbClose').addEventListener('click',closeSidebar);
+sbOverlay.addEventListener('click',closeSidebar);
+document.getElementById('sbPerfect').addEventListener('click',function(){closeSidebar();openModal('perfectcv');});
+document.getElementById('sbPrivacy').addEventListener('click',function(){closeSidebar();openModal('privacy');});
+document.getElementById('sbLegal').addEventListener('click',function(){closeSidebar();openModal('legal');});
+document.getElementById('sbCgu').addEventListener('click',function(){closeSidebar();openModal('cgu');});
+
+// ══ LEADERBOARD ══
+function getLB(){try{return JSON.parse(localStorage.getItem('cvscan_lb')||'[]');}catch(e){return [];}}
+function saveLB(arr){localStorage.setItem('cvscan_lb',JSON.stringify(arr));}
+function getUserId(){var id=localStorage.getItem('cvscan_uid');if(!id){id='u'+Date.now()+Math.random().toString(36).slice(2,6);localStorage.setItem('cvscan_uid',id);}return id;}
+function escH(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+var lbSort='score';
+document.querySelectorAll('.lb-sort-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){lbSort=btn.dataset.sort;document.querySelectorAll('.lb-sort-btn').forEach(function(b){b.classList.remove('active');});btn.classList.add('active');renderLeaderboard();});
+});
+document.getElementById('btnSubmitLB').addEventListener('click',function(){if(!lastResult){openModal('_nores');}else{openSubmitModal();}});
+
+function renderLeaderboard(){
+  var entries=getLB();
+  if(entries.length===0){document.getElementById('lbList').innerHTML='<div class="lb-empty"><p style="font-size:36px;margin-bottom:14px">📭</p><p style="color:var(--tx3);font-family:Space Mono,monospace;font-size:13px">Aucun CV publié.<br>Analyse le tien et sois le premier !</p></div>';return;}
+  var sorted=entries.slice();
+  if(lbSort==='score')sorted.sort(function(a,b){return b.score-a.score;});
+  else if(lbSort==='votes')sorted.sort(function(a,b){return (b.upvotes-b.downvotes)-(a.upvotes-a.downvotes);});
+  else sorted.sort(function(a,b){return b.date-a.date;});
+  var uid=getUserId();
+  var html=sorted.map(function(entry,idx){
+    var rank=idx+1,rankCls=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+    var sCol=entry.score>=70?'background:var(--gbg);color:var(--green)':entry.score>=45?'background:var(--abg);color:var(--amb)':'background:var(--rbg);color:var(--red)';
+    var uv=entry.userVotes?entry.userVotes[uid]:'';
+    var dt=new Date(entry.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+    var cmts=entry.comments||[];var net=(entry.upvotes||0)-(entry.downvotes||0);
+    return '<div class="lb-card"><div class="lb-card-top">'+
+      '<div class="lb-rank '+rankCls+'">'+(rank<=3?['🥇','🥈','🥉'][rank-1]:rank)+'</div>'+
+      '<div class="lb-info"><div class="lb-name">'+escH(entry.name)+'</div>'+
+      '<div class="lb-meta"><span>'+escH(entry.domain||'?')+'</span><span>'+escH(entry.level||'')+'</span><span>'+dt+'</span></div></div>'+
+      '<div class="lb-score-bdg" style="'+sCol+'">'+entry.score+'/100</div></div>'+
+      '<div class="lb-actions">'+
+      '<button class="lb-vote up'+(uv==='up'?' voted':'')+'" onclick="voteE(\''+entry.id+'\',\'up\')">👍 '+(entry.upvotes||0)+'</button>'+
+      '<button class="lb-vote down'+(uv==='down'?' voted':'')+'" onclick="voteE(\''+entry.id+'\',\'down\')">👎 '+(entry.downvotes||0)+'</button>'+
+      '<span class="lb-net">net: '+(net>0?'+':'')+net+'</span>'+
+      '<button class="lb-cmt-btn" onclick="toggleCmt(\''+entry.id+'\')">💬 '+cmts.length+'</button></div>'+
+      '<div class="lb-cmts" id="cmts-'+entry.id+'">'+
+      '<div class="lb-cmt-list">'+(cmts.length>0?cmts.map(function(c){return '<div class="lb-cmt"><div class="lb-cmt-auth">'+escH(c.author)+'</div><div class="lb-cmt-tx">'+escH(c.text)+'</div></div>';}).join(''):'<p style="font-size:12px;color:var(--tx3);padding:4px 0;font-family:Space Mono,monospace">Aucun commentaire — sois le premier !</p>')+'</div>'+
+      '<div class="lb-cmt-form"><input class="lb-cmt-in" id="ci-'+entry.id+'" placeholder="Ton commentaire…" maxlength="200"><button class="lb-cmt-send" onclick="addCmt(\''+entry.id+'\')">SEND</button></div></div>'+
+      '</div>';
+  }).join('');
+  document.getElementById('lbList').innerHTML=html;
+}
+
+function voteE(id,dir){
+  var uid=getUserId(),entries=getLB(),e=entries.find(function(x){return x.id===id;});
+  if(!e)return;if(!e.userVotes)e.userVotes={};
+  var prev=e.userVotes[uid]||'';
+  if(prev===dir){e.userVotes[uid]='';if(dir==='up')e.upvotes=Math.max(0,(e.upvotes||0)-1);else e.downvotes=Math.max(0,(e.downvotes||0)-1);}
+  else{if(prev==='up')e.upvotes=Math.max(0,(e.upvotes||0)-1);if(prev==='down')e.downvotes=Math.max(0,(e.downvotes||0)-1);e.userVotes[uid]=dir;if(dir==='up')e.upvotes=(e.upvotes||0)+1;else e.downvotes=(e.downvotes||0)+1;}
+  saveLB(entries);renderLeaderboard();
+}
+function toggleCmt(id){var el=document.getElementById('cmts-'+id);if(el)el.classList.toggle('open');}
+function addCmt(id){
+  var inp=document.getElementById('ci-'+id);if(!inp||!inp.value.trim())return;
+  var entries=getLB(),e=entries.find(function(x){return x.id===id;});if(!e)return;
+  if(!e.comments)e.comments=[];
+  e.comments.push({author:'Player #'+Math.floor(Math.random()*9000+1000),text:inp.value.trim(),date:Date.now()});
+  saveLB(entries);inp.value='';renderLeaderboard();
+  setTimeout(function(){var el=document.getElementById('cmts-'+id);if(el)el.classList.add('open');},50);
+}
+
+function openSubmitModal(){
+  var score=lastResult?lastResult.score:0,grade=lastResult?lastResult.grade:'?';
+  document.getElementById('modalBody').innerHTML=
+    '<h2>📤 Publier dans le Leaderboard</h2>'+
+    '<p style="font-size:13px;color:var(--tx2);margin-bottom:18px">Seul ton score est partagé. <strong>Aucun contenu de ton CV n\'est envoyé.</strong></p>'+
+    '<div style="background:var(--lime-dim);border:1px solid rgba(212,255,0,.2);border-radius:var(--r);padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px">'+
+    '<div style="font-family:Space Mono,monospace;font-size:32px;font-weight:700;color:var(--lime)">'+score+'</div>'+
+    '<div><div style="font-size:13px;font-weight:700;font-family:Space Mono,monospace">SCORE ATS · GRADE '+grade+'</div><div style="font-size:12px;color:var(--tx3)">'+lastFilename+'</div></div></div>'+
+    '<div class="submit-form">'+
+    '<div><label class="sf-lbl">Pseudo / Prénom *</label><input class="sf-in" id="sf-name" placeholder="Ex: Marie D., JupiterDev…" maxlength="40"></div>'+
+    '<div class="sf-row"><div><label class="sf-lbl">Domaine</label><input class="sf-in" id="sf-domain" placeholder="Dev web, Marketing…" maxlength="40"></div>'+
+    '<div><label class="sf-lbl">Niveau</label><select class="sf-in" id="sf-level"><option value="">—</option><option>Junior</option><option>Confirmé</option><option>Senior</option><option>Expert</option></select></div></div>'+
+    '<button class="sf-sub" id="sf-btn">⚡ PUBLIER MON SCORE</button></div>';
+  document.getElementById('modalBg').classList.add('open');document.body.style.overflow='hidden';
+  document.getElementById('sf-btn').addEventListener('click',function(){
+    var name=document.getElementById('sf-name').value.trim();
+    if(!name){alert('Entre un pseudo.');return;}
+    var entry={id:'lb'+Date.now()+Math.random().toString(36).slice(2,6),name:name,domain:document.getElementById('sf-domain').value.trim()||'Non précisé',level:document.getElementById('sf-level').value||'',score:lastResult.score,grade:lastResult.grade,date:Date.now(),upvotes:0,downvotes:0,userVotes:{},comments:[]};
+    var entries=getLB();entries.unshift(entry);if(entries.length>100)entries=entries.slice(0,100);
+    saveLB(entries);closeModal();showPage('leaderboard');
+  });
+}
+
+// ══ DOMAIN CVs ══
+var DOMAINS=[
+  {id:'dev',ico:'💻',name:'Développeur / Tech',sub:'Frontend · Backend · Full Stack · DevOps',
+   structure:['Titre + Accroche (1 ligne)', 'Coordonnées complètes (email, tel, LinkedIn, GitHub)', 'Compétences techniques (langages, frameworks, outils, cloud)', 'Expériences (ordre anti-chronologique, bullet points chiffrés)', 'Formation (diplôme, école, années)', 'Certifications (AWS, GCP, etc.)', 'Projets personnels / Open Source (optionnel)'],
+   cv:'Lucas Martin\nDéveloppeur Full Stack Senior — 5 ans d\'expérience\nlucas.martin@email.com | 06.11.22.33.44 | linkedin.com/in/lucas-martin | github.com/lucas-martin\nParis, 75011 | Disponible immédiatement | Remote accepté | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES TECHNIQUES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLangages     : JavaScript, TypeScript, Python, SQL, HTML, CSS\nFrontend     : React, Next.js, Vue.js, TailwindCSS, Sass\nBackend      : Node.js, Express, Django, GraphQL, REST\nBases de données : PostgreSQL, MySQL, MongoDB, Redis\nDevOps       : Docker, Kubernetes, AWS (EC2/S3/Lambda), GitHub Actions, Git\nOutils       : Jira, Figma, VS Code, Postman, DataDog\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDéveloppeur Full Stack Senior | TechCorp, Paris | 2022 - 2025\n- Conçu et déployé 8 applications React/Node.js (150 000 utilisateurs actifs)\n- Réduit le temps de chargement de 62% via optimisation SQL et mise en cache Redis\n- Mis en place une architecture microservices : -40% de temps de déploiement\n- Formé 4 développeurs juniors aux bonnes pratiques Git, code review et TDD\n- Piloté 3 sprints Agile/mois, vélocité moyenne : 45 story points\nStack : React, TypeScript, Node.js, PostgreSQL, Redis, Docker, Kubernetes, AWS\n\nDéveloppeur Frontend | StartupXYZ, Paris | 2020 - 2022\n- Développé l\'interface de 3 SaaS (React, Next.js, TailwindCSS)\n- Score Lighthouse : 68 → 96 (+28 points) sur le produit principal\n- Intégré 12 APIs REST et 2 APIs GraphQL\n- Livré 25 features en 18 mois, 0 régression critique en production\nStack : React, Next.js, TypeScript, Jest, GraphQL, Figma, GitHub Actions\n\nStage Développeur Web | AgenceWeb, Lyon | 2019 - 2020\n- Construit 6 sites WordPress et 2 applications PHP Laravel\n- Créé un système de rapports PDF automatiques (économie : 15h/semaine)\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Informatique — Génie Logiciel | UPMC Paris 6 | 2017 - 2019\nBac+5 — Mention Bien\n\nLicence Informatique | Université de Lyon | 2014 - 2017\nBac+3\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n- AWS Certified Developer Associate — Amazon, 2023\n- Google Professional Cloud Developer — Google, 2022\n- CKAD (Kubernetes) — CNCF, 2021\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSOFT SKILLS & LANGUES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSoft skills : leadership, communication, organisation, travail en équipe, résolution de problèmes\nFrançais - Natif | Anglais - C2 Bilingue (TOEIC 985) | Espagnol - B1'},
+
+  {id:'marketing',ico:'📣',name:'Marketing & Communication',sub:'Digital · SEO · Content · Social Media',
+   structure:['Titre de poste + spécialisation', 'Coordonnées + Portfolio URL', 'Résumé (3 lignes max)', 'Compétences (outils CRM, analytics, ads)', 'Expériences avec métriques (taux conversion, budget, ROI)', 'Formation + certifications Google/Meta/HubSpot', 'Langues'],
+   cv:'Sophie Legrand\nResponsable Marketing Digital — 6 ans d\'expérience\nsophie.legrand@email.com | 06.22.33.44.55 | linkedin.com/in/sophie-legrand\nLyon, 69002 | Disponible immédiatement | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSEO/SEA      : SEMrush, Ahrefs, Google Ads, Google Search Console, Moz\nSocial Media : Meta Business, LinkedIn Ads, TikTok Ads, Hootsuite\nAnalytics    : Google Analytics 4, Hotjar, Power BI, Looker Studio\nCRM/Email    : HubSpot, Salesforce, Mailchimp, Klaviyo\nContenu      : WordPress, Figma, Canva, Adobe Premiere\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nResponsable Marketing Digital | E-Commerce Plus, Lyon | 2021 - 2025\n- Piloté la stratégie SEO : +85% de trafic organique en 24 mois\n- Géré un budget media de 280 000€/an (Google Ads, Meta Ads, LinkedIn Ads)\n- Lancé 4 campagnes de lancement produit : +120% des objectifs de leads\n- Augmenté le taux de conversion email de 2,1% à 4,8% (+128%) via A/B testing\n- Coordonné une équipe de 5 personnes (content, graphiste, SEO, PPC)\nOutils : HubSpot, Google Analytics 4, SEMrush, Google Ads, Meta Business, Salesforce\n\nChargée de Marketing Digital | Agence Boost, Paris | 2019 - 2021\n- Développé la stratégie social media de 8 clients B2B et B2C\n- Créé 200+ contenus/mois : articles SEO, vidéos, newsletters\n- Instagram : 0 → 45 000 abonnés organiques en 12 mois\n- GA4 + Hotjar → +32% de pages vues par session\nOutils : WordPress, Canva, Adobe Premiere, Hootsuite, SEMrush\n\nAssistante Communication | Groupe Média, Paris | 2018 - 2019\n- 80 articles SEO/mois (position moyenne : top 3 pour 40% des mots-clés)\n- Email marketing : 35 000 abonnés, taux d\'ouverture 28%\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Marketing Digital | ESCP Business School | 2016 - 2018 | Bac+5\nLicence Marketing | Université Lyon 3 | 2013 - 2016 | Bac+3\n\nCertifications : Google Analytics 4 (2024) · HubSpot Marketing (2023) · Meta Blueprint (2022) · TOEIC 910\n\nSoft skills : créativité, communication, organisation, leadership, adaptabilité, esprit d\'analyse\nFrançais - Natif | Anglais - C1 (TOEIC 910) | Espagnol - B2'},
+
+  {id:'finance',ico:'💰',name:'Finance & Comptabilité',sub:'Audit · Contrôle de gestion · Trésorerie',
+   structure:['Titre (Contrôleur, Auditeur, DAF…)', 'Coordonnées + LinkedIn', 'Compétences (ERP, outils reporting)', 'Expériences avec chiffres (budget géré, économies, délais)', 'Formation (école de commerce, Dauphine, CCA)', 'Certifications (CFA, DEC, Power BI)', 'Normes maîtrisées (IFRS, GAAP)'],
+   cv:'Antoine Rousseau\nContrôleur de Gestion Senior — 7 ans d\'expérience\nantoine.rousseau@email.com | 06.33.44.55.66 | linkedin.com/in/antoine-rousseau\nParis, 75008 | Disponible immédiatement | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nERP          : SAP FI/CO, Oracle Financials, Sage, Hyperion, Cegid\nReporting    : Power BI, Excel (VBA, Power Query, TCD), SQL, Looker Studio\nNormes       : IFRS, French GAAP, consolidation, budget, forecasting\nBureautique  : PowerPoint, Teams, SharePoint, Notion\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nContrôleur de Gestion Senior | Groupe Industriel SA | 2020 - 2025\n- Piloté le budget annuel (120 M€) et les révisions trimestrielles\n- Réduit les écarts budgétaires de 8,5% à 2,3% grâce au nouveau modèle de prévision\n- Dashboard Power BI : reporting mensuel de 5 jours → 1,5 jour (-70%)\n- Analysé 12 lignes de produits : recommandations → +4,2 M€ de marge nette\n- Encadré une équipe de 3 contrôleurs juniors\nOutils : SAP FI/CO, Oracle, Power BI, Excel VBA, SQL\n\nContrôleur de Gestion | Société Services | 2018 - 2020\n- Clôtures mensuelles et analyse des écarts pour 8 centres de coût\n- Construit le modèle price costing → 3 appels d\'offres remportés\n- Reporting mensuel pour le comité de direction\n- Délais de clôture : 10 → 6 jours ouvrés (-40%)\nOutils : SAP, Excel, PowerPoint, Cognos\n\nAuditeur Financier | Cabinet EY | 2017 - 2018\n- 6 missions d\'audit légal (CA audité > 500 M€)\n- Contrôle cycles Achats/Fournisseurs et Trésorerie (normes IFRS)\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster CCA (Comptabilité Contrôle Audit) | Paris-Dauphine | 2015 - 2017 | Bac+5 — Très Bien\nLicence Économie-Gestion | Paris 1 Panthéon-Sorbonne | 2012 - 2015 | Bac+3\n\nCertifications : CFA Level 1 (2022) · Power BI Microsoft (2023) · DEC en cours\n\nSoft skills : rigueur, organisation, communication, analyse, synthèse, leadership\nFrançais - Natif | Anglais - C1 (reporting en anglais)'},
+
+  {id:'design',ico:'🎨',name:'Design & UX/UI',sub:'Product Design · Graphisme · UX Research',
+   structure:['Titre + Lien portfolio (obligatoire !)', 'Coordonnées + portfolio.com + Dribbble/Behance', 'Outils design (Figma, Adobe, Framer…)', 'Expériences avec métriques UX (taux abandon, conversion, NPS)', 'Compétences recherche UX (tests utilisateurs, A/B, analytics)', 'Formation (école d\'art, design, école de code)', 'Certifications Google UX'],
+   cv:'Inès Moreau\nProduct Designer UX/UI Senior — 5 ans d\'expérience\nines.moreau@email.com | 06.55.66.77.88 | linkedin.com/in/ines-moreau | portfolio : inesmoreau.design\nNantes, 44000 | Disponible immédiatement | Remote full accepté | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDesign       : Figma (expert), Adobe Illustrator, Photoshop, After Effects, Framer\nRecherche UX : Maze, UserTesting, Hotjar, Optimal Workshop, Dovetail\nPrototypage  : Figma avancé, Principle, InVision, Marvel\nDev (notions): HTML, CSS, React (lecture code), Git\nCollaboration: Jira, Notion, Miro, Zeroheight, Slack\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nProduct Designer Senior | App Startup, Nantes | 2021 - 2025\n- Conçu l\'UX de 3 apps mobiles (500 000 téléchargements cumulés)\n- Taux d\'abandon onboarding : 68% → 31% (-54%) via tests utilisateurs\n- Piloté 25 sessions de recherche UX (interviews, tests A/B, eye tracking)\n- Créé et maintenu le Design System (180+ composants Figma) pour 8 devs\n- Sprints Agile bi-hebdomadaires avec l\'équipe produit\nOutils : Figma, Maze, Hotjar, Notion, Jira, Lottie, Zeroheight, Miro\n\nUX Designer | Agence Digitale, Paris | 2019 - 2021\n- Audits UX de 6 sites e-commerce → +18% de conversions\n- 12 projets de refonte UX livrés (wireframes, prototypes, tests)\n- 3 sessions de tests utilisateurs par sprint instaurées\nOutils : Figma, Sketch, InVision, UserTesting, Google Analytics\n\nGraphiste Junior | Studio Créatif, Lyon | 2018 - 2019\n- 8 identités visuelles créées (logo, charte, templates)\n- Supports print et digital pour 15 clients\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Design d\'Interaction | ENSCI Les Ateliers | 2016 - 2018 | Bac+5\nLicence Arts Appliqués - Design Graphique | École Boulle | 2013 - 2016 | Bac+3\n\nCertifications : Google UX Design (2023) · Figma Advanced (2022) · Design Sprint Facilitator (2021)\n\nSoft skills : créativité, empathie utilisateur, communication, organisation, résolution de problèmes\nFrançais - Natif | Anglais - C1 | Italien - B1'},
+
+  {id:'commercial',ico:'📊',name:'Commercial & Vente',sub:'Account Manager · Business Dev · Grands Comptes',
+   structure:['Titre + secteur cible (B2B, SaaS, retail…)', 'Coordonnées + LinkedIn', 'Résultats chiffrés en accroche (CA généré, objectifs)', 'Outils CRM et sales tech', 'Expériences avec métriques (CA, taux conversion, quota atteint)', 'Formation + certifications (Salesforce, HubSpot Sales)', 'Langues (crucial pour le commercial international)'],
+   cv:'Thomas Leclerc\nResponsable Commercial Grands Comptes — 7 ans d\'expérience\nthomas.leclerc@email.com | 06.66.77.88.99 | linkedin.com/in/thomas-leclerc\nLille, 59000 | Disponible immédiatement | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCRM          : Salesforce (certifié), HubSpot, Pipedrive, Zoho CRM\nSales tools  : LinkedIn Sales Navigator, Outreach, Gong, Salesloft, Lusha\nMethodologies: SPIN Selling, Challenger Sale, MEDDIC, Account Based Selling\nBureautique  : Excel, PowerPoint, Notion, Slack, Teams\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nResponsable Commercial Grands Comptes | SaaS Enterprise | 2021 - 2025\n- Géré 45 comptes stratégiques (CA : 4,2 M€/an)\n- Augmenté le CA du portefeuille de 32% en 2 ans (upsell + nouveaux comptes)\n- Signé 3 contrats pluriannuels à 200K€+ chacun\n- Réduit le taux de churn de 18% à 9%\nOutils : Salesforce, HubSpot, LinkedIn Sales Navigator, Gong\n\nAccount Manager | Éditeur Logiciel, Paris | 2018 - 2021\n- 0 → 1,8 M€ de CA en 3 ans sur un territoire neuf\n- 120% des objectifs annuels atteints en 2020 (malgré Covid)\n- 25 démos produit/mois, taux de conversion : 38%\n- Cycle de vente complet : prospection → closing\nOutils : Pipedrive, LinkedIn Sales Navigator, Outreach, Calendly\n\nCommercial B2B | PME Services | 2017 - 2018\n- 200 cibles prospectées/mois (tel, email, LinkedIn)\n- 48 nouveaux clients signés en 12 mois (objectif : 35)\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Commerce International | SKEMA Business School | 2015 - 2017 | Bac+5\nLicence Économie et Gestion | Université de Bordeaux | 2012 - 2015 | Bac+3\n\nCertifications : Salesforce Sales Cloud (2022) · HubSpot Sales (2021) · Gong Revenue Intelligence (2023)\n\nSoft skills : négociation, communication, persévérance, organisation, leadership, empathie, adaptabilité\nFrançais - Natif | Anglais - C1 | Espagnol - B2'},
+
+  {id:'rh',ico:'👥',name:'Ressources Humaines',sub:'Recrutement · Formation · SIRH · Paie',
+   structure:['Titre RH + périmètre (nombre de salariés)', 'Coordonnées + LinkedIn', 'Outils SIRH et ATS utilisés', 'Expériences : turnover réduit, recrutements réalisés, projets RH', 'Maîtrise du droit du travail et des conventions collectives', 'Formation (Master RH, droit social, sciences po)', 'Certifications SIRH'],
+   cv:'Camille Dupuis\nResponsable Ressources Humaines — 6 ans d\'expérience\ncamille.dupuis@email.com | 06.44.55.66.77 | linkedin.com/in/camille-dupuis\nBordeaux, 33000 | Disponible immédiatement | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSIRH         : Workday, SAP HR, Lucca, Silae, Talend, ADP\nRecrutement  : LinkedIn Recruiter, Indeed, Workable, Lever, Welcome to the Jungle\nDroit        : droit du travail, conventions collectives, disciplinaire, RGPD RH\nBureautique  : Excel, PowerPoint, Teams, SharePoint\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nResponsable RH | Groupe Retail SA (450 salariés) | 2021 - 2025\n- Réduit le turnover de 24% à 14% en 2 ans\n- Géré 85 recrutements/an (CDI, CDD, alternance)\n- Déployé Workday (SIRH) : -30% de temps administratif RH\n- Plan de formation : 180 collaborateurs formés, budget 320 000€\n- Encadré une équipe de 4 personnes\nOutils : Workday, LinkedIn Recruiter, Talend, Excel, Lucca\n\nChargée de Recrutement | Cabinet RH, Paris | 2019 - 2021\n- 120 recrutements en 2 ans (tech, finance, ingénierie)\n- Délai moyen de recrutement : 52 → 31 jours (-40%)\n- Vivier : 2 500 profils qualifiés constitués\n- 15 job datings et forums emploi animés\nOutils : LinkedIn Recruiter, Indeed, Workable, Salesforce, Lever\n\nAssistante RH | PME Industrie | 2018 - 2019\n- Administration du personnel (contrats, absences, mutuelle) pour 80 salariés\n- Paies mensuelles (Silae) et déclarations sociales\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Management des RH | Sciences Po Bordeaux | 2016 - 2018 | Bac+5\nLicence Droit Social et RH | Université de Bordeaux | 2013 - 2016 | Bac+3\n\nCertifications : Workday HCM (2022) · Habilitation VAE (2021) · Assessment Center SHL (2020)\n\nSoft skills : empathie, communication, leadership, organisation, négociation, confidentialité, pédagogie\nFrançais - Natif | Anglais - B2 (recrutement international)'},
+
+  {id:'ingenieur',ico:'⚙️',name:'Ingénierie & Production',sub:'Mécanique · Industriel · Qualité · HSE',
+   structure:['Titre + domaine d\'expertise', 'Coordonnées + LinkedIn', 'Compétences techniques (logiciels, normes, méthodologies)', 'Expériences : économies générées, % amélioration, projets livrés', 'Formation (école d\'ingénieurs, IUT, master technique)', 'Certifications (ISO, Lean, Six Sigma)', 'Langues (important pour les groupes internationaux)'],
+   cv:'Pierre Fontaine\nIngénieur Qualité / Amélioration Continue — 6 ans d\'expérience\npierre.fontaine@email.com | 06.77.88.99.00 | linkedin.com/in/pierre-fontaine\nGrenoble, 38000 | Disponible dans 1 mois | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nQualité      : ISO 9001, IATF 16949, AMDEC, SPC, MSA, Plan de contrôle, 8D, QRQC\nLean         : 5S, Kaizen, VSM, SMED, Poka-Yoke, TPM, résolution de problèmes\nLogiciels    : SAP QM, Minitab, Excel (VBA), AutoCAD, Solidworks (notions)\nMétrologie   : MMT, instruments de mesure, capabilité procédé\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nIngénieur Qualité Senior | Équipementier Auto, Grenoble | 2021 - 2025\n- 4 projets Lean/6 Sigma : 650 000€ d\'économies/an générées\n- Taux de rebuts : 3,2% → 0,8% (outils SPC et AMDEC)\n- Audits ISO 9001:2015 et IATF 16949 : 0 non-conformité majeure\n- Traitement des réclamations clients : délai -45%\n- Formé 22 opérateurs aux outils qualité (5S, PDCA, 8D, Ishikawa)\nOutils : SAP QM, Minitab, Excel, Solidworks\n\nIngénieur Méthodes | Industrie Mécanique, Lyon | 2019 - 2021\n- Optimisé 8 gammes de fabrication : temps de cycle -22%\n- Lean manufacturing sur 2 îlots : +18% de productivité\nOutils : SAP, AutoCAD, Excel VBA, VSM\n\nIngénieur Qualité Junior | Aéronautique PME, Toulouse | 2018 - 2019\n- Contrôle conformité pièces mécaniques (métrologie, CMM)\n- Contribution à la certification EN 9100\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster Génie Industriel | INSA Lyon | 2016 - 2018 | Bac+5 (Ingénieur)\nLicence Physique-Mécanique | Université de Grenoble | 2013 - 2016 | Bac+3\n\nCertifications : Green Belt Lean Six Sigma ASQ (2022) · Auditeur ISO 9001/IATF AFNOR (2021) · Minitab (2020)\n\nSoft skills : rigueur, organisation, leadership, pédagogie, communication, résolution de problèmes\nFrançais - Natif | Anglais - B2 (doc technique, audits) | Allemand - A2'},
+
+  {id:'sante',ico:'🏥',name:'Santé & Médical',sub:'Infirmier · Aide-soignant · Pharmacie · Médecin',
+   structure:['Diplôme d\'État + service de spécialité', 'Coordonnées + mobilité géographique', 'Compétences techniques de soins (actes maîtrisés)', 'Logiciels (DPI, SIRH santé)', 'Expériences : services, actes réalisés, formation équipe', 'Formation IDE + spécialisations', 'AFGSU et certifications obligatoires'],
+   cv:'Julie Bernard\nInfirmière Diplômée d\'État — 8 ans d\'expérience\njulie.bernard@email.com | 06.88.99.00.11 | linkedin.com/in/julie-bernard\nMontpellier, 34000 | Disponible immédiatement | Mobilité régionale | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSoins        : soins infirmiers complets, urgences, chirurgie, soins palliatifs\nLogiciels    : Crossway, Mediboard, Orbis, DPI, Pyxis\nSpécificités : coordination de soins, éducation thérapeutique, gestion de la douleur\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nInfirmière Coordinatrice | Clinique Saint-Roch, Montpellier | 2020 - 2025\n- Coordonné les soins de 30 patients/jour (chirurgie orthopédique)\n- Formé et encadré 6 infirmières et 4 aides-soignants\n- Protocole anti-chutes : -35% d\'incidents en 18 mois\n- Coordination des sorties (SSR, HAD, EHPAD)\nOutils : Crossway, Pyxis, DPI, Excel\n\nInfirmière | Service Urgences | CHU Montpellier | 2017 - 2020\n- 25 à 40 patients par poste en situation d\'urgence\n- 2 500+ actes techniques réalisés (VVP, prélèvements, pansements complexes)\n- Protocole sepsis : délai de prise en charge -28%\n- Formation de 3 étudiants IDE en stage\n\nInfirmière | Médecine Interne | Hôpital Lapeyronie | 2015 - 2017\n- Continuité des soins sur 24 lits\n- Transmissions ciblées et tenue du dossier de soins infirmiers\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDiplôme d\'État Infirmier (DEI) | IFSI CHU Montpellier | 2012 - 2015 | Bac+3 équivalent\nBaccalauréat Scientifique | Mention Bien | 2012\n\nCertifications : AFGSU 2 (2024) · Plaies et Cicatrisation (2022) · DU Douleur Chronique (2021)\n\nSoft skills : empathie, communication, rigueur, organisation, gestion du stress, pédagogie, esprit d\'équipe\nFrançais - Natif | Anglais - B1 | Espagnol - A2'},
+
+  {id:'juridique',ico:'⚖️',name:'Juridique & Droit',sub:'Avocat · Juriste · Compliance · Notariat',
+   structure:['Titre + branche du droit maîtrisée', 'Coordonnées + LinkedIn', 'Domaines juridiques maîtrisés (droit des affaires, RGPD…)', 'Outils de recherche juridique (LexisNexis, Dalloz)', 'Expériences : contrats rédigés, procédures gagnées, conformité', 'Formation (Paris 1/2, Assas, Sciences Po, CAPA)', 'Barreaux ou certifications (DPO, CAPA, CCEP)'],
+   cv:'Alexis Garnier\nJuriste d\'Entreprise Senior — 5 ans d\'expérience\nalexis.garnier@email.com | 06.99.00.11.22 | linkedin.com/in/alexis-garnier\nParis, 75002 | Préavis 3 mois | Hybride | Nationalité française\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCOMPÉTENCES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nDroit        : contrats, droit commercial, distribution, RGPD, droit de la consommation\nRecherche    : LexisNexis, Dalloz, Editions Francis Lefebvre, Legifrance\nOutils       : iManage, Oodrive, SharePoint, Excel, PowerPoint\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nEXPÉRIENCE PROFESSIONNELLE\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nJuriste d\'Entreprise Senior | Groupe Distribution | 2022 - 2025\n- Rédigé et négocié 150+ contrats commerciaux (fournisseurs, distributeurs)\n- Réduit les litiges fournisseurs de 40% via clauses protectrices renforcées\n- Programme RGPD : 0 sanction CNIL sur 3 audits successifs\n- Base de 200+ modèles de contrats : -60% de temps de rédaction\nOutils : LexisNexis, Dalloz, Oodrive, SharePoint\n\nJuriste Contrats | Cabinet d\'Affaires, Paris | 2020 - 2022\n- Contrats commerciaux, NDA et SLA pour 30 clients\n- 80 due diligences M&A (analyse des risques contractuels)\n- 12 négociations commerciales complexes\nOutils : LexisNexis, Dalloz, iManage\n\nÉlève Avocat | Cabinet Dupont & Associés | 2019 - 2020\n- 15 affaires contentieuses (droit des affaires)\n- Consultations juridiques et notes de synthèse\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nFORMATION & CERTIFICATIONS\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nMaster II Droit des Affaires | Paris 1 Panthéon-Sorbonne | 2017 - 2019 | Bac+5 — Très Bien\nLicence de Droit | Paris II Panthéon-Assas | 2014 - 2017 | Bac+3\n\nCertifications : CAPA (EFB Paris, 2020) · DPO CNIL/IAPP (2022) · Compliance CCEP (2023)\n\nSoft skills : rigueur, analyse, synthèse, négociation, communication, confidentialité, organisation\nFrançais - Natif | Anglais - C1 (contrats droit anglais, due diligences)'}
+];
+
+function renderDomainGrid(){
+  document.getElementById('domainCvView').classList.remove('active');
+  document.getElementById('domainGrid').style.display='';
+  document.getElementById('domainCards').innerHTML=DOMAINS.map(function(d){
+    return '<div class="domain-card" onclick="showDomainCV(\''+d.id+'\')">'+
+      '<div class="domain-card-badge">100/100</div>'+
+      '<span class="domain-card-ico">'+d.ico+'</span>'+
+      '<div class="domain-card-name">'+d.name+'</div>'+
+      '<div class="domain-card-sub">'+d.sub+'</div></div>';
+  }).join('');
+}
+
+function showDomainCV(id){
+  var d=DOMAINS.find(function(x){return x.id===id;});if(!d)return;
+  document.getElementById('domainGrid').style.display='none';
+  document.getElementById('domainCvView').classList.add('active');
+  var structureHtml=d.structure.map(function(s,i){return '<div class="cv-section-guide"><div class="csg-num">'+String(i+1).padStart(2,'0')+'</div><div class="csg-body"><div class="csg-title">'+s+'</div></div></div>';}).join('');
+  document.getElementById('domainCvContent').innerHTML=
+    '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">'+
+    '<span style="font-size:34px">'+d.ico+'</span>'+
+    '<div><div style="font-size:22px;font-weight:700;letter-spacing:-.03em">'+d.name+'</div><div style="font-family:Space Mono,monospace;font-size:12px;color:var(--tx3)">'+d.sub+'</div></div>'+
+    '<span style="margin-left:auto;font-family:Space Mono,monospace;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--lime-dim);color:var(--lime);border:1px solid rgba(212,255,0,.2)">★ 100/100</span></div>'+
+    '<div style="background:var(--bbg);border:1px solid var(--bbd);border-radius:var(--r);padding:12px 16px;font-size:13px;color:var(--blue);line-height:1.65;margin-bottom:18px"><b style="color:var(--tx);font-family:Space Mono,monospace">STRUCTURE OPTIMALE</b> — Ordre des sections recommandé pour ce domaine :</div>'+
+    '<div class="cv-structure">'+structureHtml+'</div>'+
+    '<div style="background:var(--line);height:1px;margin:20px 0"></div>'+
+    '<div style="font-family:Space Mono,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--lime);margin-bottom:14px">// exemple complet 100/100</div>'+
+    '<div class="cv-preview-box">'+d.cv.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div>'+
+    '<div class="domain-actions">'+
+    '<button class="btn-dl" onclick="dlDomain(\''+id+'\')">⬇ Télécharger ce CV</button>'+
+    '<button class="btn-test" onclick="testDomain(\''+id+'\')">⚡ Tester sur CVScan</button></div>'+
+    '<div style="font-family:Space Mono,monospace;font-size:10px;color:var(--tx3);text-align:center;margin-top:10px">Modèle fictif · adapte-le à ton profil réel</div>';
+}
+
+document.getElementById('btnBackDomain').addEventListener('click',function(){
+  document.getElementById('domainCvView').classList.remove('active');
+  document.getElementById('domainGrid').style.display='';
+});
+
+function dlDomain(id){
+  var d=DOMAINS.find(function(x){return x.id===id;});if(!d)return;
+  var blob=new Blob([d.cv],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CV-Parfait-'+d.name.replace(/[^a-zA-Z0-9]/g,'-')+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+}
+function testDomain(id){
+  var d=DOMAINS.find(function(x){return x.id===id;});if(!d)return;
+  var blob=new Blob([d.cv],{type:'text/plain'});
+  var file=new File([blob],'CV-'+d.name+'.txt',{type:'text/plain'});
+  showPage('home');
+  cvText=d.cv;cvPages=1;cvFile=file;
+  document.getElementById('fcName').textContent=file.name;
+  document.getElementById('fcSize').textContent=(blob.size/1024).toFixed(0)+' Ko';
+  document.getElementById('fileCard').classList.add('show');
+  document.getElementById('dropZone').classList.add('has-file');
+  document.getElementById('dropZone').querySelector('.drop-t').textContent='CV domaine chargé ✓';
+  document.getElementById('analyzeBtn').disabled=false;
+  setTimeout(function(){document.getElementById('analyzeBtn').scrollIntoView({behavior:'smooth',block:'center'});},300);
+}
+
+// ══ PERFECT CV TEXT ══
+var PERFECT_CV=['Marie Dupont','Chef de projet digital senior - 8 ans d experience','marie.dupont@gmail.com | 06.12.34.56.78 | linkedin.com/in/marie-dupont | github.com/marie-dupont','Lyon, 69002 | Nationalite francaise | Disponible immediatement | Teletravail hybride accepte','','EXPERIENCE PROFESSIONNELLE','','Chef de Projet Digital Senior | Acme Corp, Lyon | 2021 - 2025','- Pilote 14 projets web et mobiles (budget total 3,2 millions euros)','- Manage une equipe de 9 personnes : developpeurs, designers, chefs de projet','- Reduit les delais de livraison de 38% (Agile et Scrum)','- Lance la refonte UX du site e-commerce : +24% de taux de conversion','- Forme 18 collaborateurs (Jira, Confluence, Google Analytics, Power BI)','- Negocie 7 prestataires externes (developpement, design, SEO)','- Optimise le budget marketing de 15% : ROI +22%','- Coordonne 3 migrations techniques sans interruption de service','Outils : Jira, Confluence, Trello, Asana, Figma, Google Analytics, SQL, Python, Excel, Power BI','','Chef de Projet Junior | Beta Agency, Paris | 2019 - 2021','- Coordonne 10 projets digitaux pour des clients grands comptes','- Satisfaction client : 85% a 97% (NPS +20 points) en 24 mois','- Reporting Power BI automatise (economie : 10h par mois)','- 22 appels d offres, taux de succes : 68%','- Campagnes Google Ads et Facebook Ads (18 000 euros par mois)','- 4 sites e-commerce deployes (WordPress, Shopify)','Outils : Microsoft Project, Slack, Teams, HubSpot, WordPress, Shopify, Google Ads, Salesforce','','Chargee de Marketing Digital | StartupXYZ, Paris | 2017 - 2019','- Google Ads et Facebook Ads (15 000 euros par mois)','- 45 contenus SEO par mois : +48% trafic organique en 12 mois','- Social media : +12 000 abonnes en 18 mois','Outils : SEMrush, Hotjar, Mailchimp, Tableau, SQL, Excel, Adobe Premiere, Salesforce','','FORMATION','','Master Management de Projets Digitaux | IAE Lyon | 2015 - 2017','Diplome Bac+5 - Mention Bien','','Licence Information-Communication | Universite Lumiere Lyon 2 | 2012 - 2015','Diplome Bac+3','','CERTIFICATIONS','','- PMP (Project Management Professional) - PMI, 2022','- Google Analytics 4 Certification - Google, 2023','- Scrum Master Certified - SCRUMstudy, 2021','- TOEIC 935 - ETS, 2019','','COMPETENCES','','Gestion de projet : Jira, Confluence, Trello, Asana, Microsoft Project, Agile, Scrum, Kanban','Developpement web : HTML, CSS, JavaScript, Python, SQL, WordPress, Shopify, GitHub, Git','Marketing digital : Google Ads, Facebook Ads, SEO, HubSpot, Salesforce, SEMrush, Mailchimp','Analyse de donnees : Excel, Power BI, Tableau, SQL, Google Analytics, Python, Figma','Collaboration : Slack, Teams, Zoom, Notion, SharePoint, Photoshop, InDesign','','Soft skills : leadership, communication, gestion du temps, organisation, pedagogie, travail en equipe,','resolution de problemes, adaptabilite, force de proposition, negociation, autonomie, management,','coordination, esprit d equipe, creativite, rigueur, polyvalence','','LANGUES','','Francais - Natif','Anglais - C1 Courant (TOEIC 935)','Espagnol - B2 Intermediaire avance','Allemand - B1 Intermediaire','','CENTRES D INTERET','','Randonnee et trail running (semi-marathon Lyon 2023)','Photographie argentique et numerique','Benevolat numerique : ateliers initiation internet seniors (association Connectoo, Lyon)'].join('\n');
+
+function dlPerfectCV(){
+  var blob=new Blob([PERFECT_CV],{type:'text/plain;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CV-Marie-Dupont-100-sur-100.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(a.href);
+}
+
+// ══ MODALS ══
+var MODALS={
+  perfectcv:{title:'⭐ Le CV parfait — 100/100',html:function(){
+    return '<div style="background:var(--lime-dim);border:1px solid rgba(212,255,0,.2);border-radius:var(--r);padding:14px 18px;margin-bottom:18px;font-size:13px;color:var(--lime);line-height:1.7"><strong style="color:var(--tx)">Ce CV est conçu pour scorer 100/100.</strong><br>Toutes les sections, dates, mots-clés, chiffres et langues sont présents.</div>'+
+      '<div style="text-align:center;margin-bottom:18px"><button id="btnDlPerfect" style="background:var(--lime);color:#08080a;border:none;padding:11px 24px;border-radius:var(--r);font-family:Space Mono,monospace;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em">⬇ TÉLÉCHARGER .TXT</button><div style="font-family:Space Mono,monospace;font-size:10px;color:var(--tx3);margin-top:6px">Glisse ce fichier sur CVScan pour vérifier</div></div>'+
+      '<div style="background:var(--bg3);border:1px solid var(--line2);border-radius:var(--r2);padding:20px 22px;font-family:Space Mono,monospace;font-size:11.5px;line-height:1.85;color:#c8c8b8;white-space:pre-wrap;max-height:460px;overflow-y:auto">'+PERFECT_CV.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div><div style="font-family:Space Mono,monospace;font-size:10px;color:var(--tx3);text-align:center;margin-top:10px">Modèle fictif à titre pédagogique.</div>';
+  }},
+  privacy:{title:'🔒 Politique de confidentialité',html:function(){return '<h3>Principe</h3><p>CVScan ATS fonctionne entièrement dans ton navigateur. Aucun fichier, aucune donnée personnelle ne quitte ton appareil.</p><h3>Données traitées</h3><p>Localement uniquement : le fichier CV, le texte extrait, le texte de l\'offre si saisi.</p><h3>Zéro collecte</h3><p>Pas de cookie de tracking, pas de pixel publicitaire, pas d\'analytique externe.</p><h3>Bibliothèques</h3><p>PDF.js est chargé depuis cdnjs.cloudflare.com uniquement pour lire les PDFs. Aucune donnée n\'est transmise.</p><h3>RGPD</h3><p>Aucune donnée collectée = aucun droit d\'accès ou suppression applicable.</p>';}},
+  legal:{title:'⚖️ Mentions légales',html:function(){return '<h3>Éditeur</h3><p>CVScan ATS est un outil gratuit développé à titre informatif et éducatif.</p><h3>Propriété intellectuelle</h3><p>Code source et design protégés par le droit d\'auteur.</p><h3>Limitation de responsabilité</h3><p>Résultats indicatifs. Ne garantit pas le passage dans un ATS réel — chaque éditeur ATS a ses propres algorithmes.</p>';}},
+  cgu:{title:'📋 CGU',html:function(){return '<h3>Accès</h3><p>Gratuit, sans inscription, libre d\'utilisation selon ces CGU.</p><h3>Autorisé</h3><p>Analyser son CV, usage pédagogique, accompagnement professionnel (coach, conseiller).</p><h3>Interdit</h3><p>Analyser des CVs tiers sans consentement, falsification, activité frauduleuse.</p><h3>Responsabilité</h3><p>L\'utilisateur est seul responsable des décisions prises sur la base des résultats.</p>';}},
+  _nores:{title:'❗ Analyse requise',html:function(){return '<p style="font-size:14px;color:var(--tx2)">Tu dois d\'abord analyser ton CV pour publier ton score dans le Leaderboard.</p><p style="font-family:Space Mono,monospace;font-size:12px;color:var(--tx3)">Dépose ton CV → Lance l\'analyse → Publie ton score.</p>';}}
+};
+
+function openModal(type){
+  var m=MODALS[type];if(!m)return;
+  document.getElementById('modalBody').innerHTML='<h2>'+m.title+'</h2>'+m.html();
+  document.getElementById('modalBg').classList.add('open');document.body.style.overflow='hidden';
+  var dlBtn=document.getElementById('btnDlPerfect');if(dlBtn)dlBtn.addEventListener('click',dlPerfectCV);
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('open');document.body.style.overflow='';}
+
+document.getElementById('modalClose').addEventListener('click',closeModal);
+document.getElementById('modalBg').addEventListener('click',function(e){if(e.target===document.getElementById('modalBg'))closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
+
+document.getElementById('lPriv').addEventListener('click',function(){openModal('privacy');});
+document.getElementById('lLeg').addEventListener('click',function(){openModal('legal');});
+document.getElementById('lCgu').addEventListener('click',function(){openModal('cgu');});
+document.getElementById('fPriv').addEventListener('click',function(){openModal('privacy');});
+document.getElementById('fLeg').addEventListener('click',function(){openModal('legal');});
+document.getElementById('fCgu').addEventListener('click',function(){openModal('cgu');});
+document.getElementById('linkPrivacy').addEventListener('click',function(){openModal('privacy');});
+
+// Init domain grid
+renderDomainGrid();
+</script>
+</body>
+</html>
