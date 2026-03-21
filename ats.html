@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3442137487131271"
-     crossorigin="anonymous"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="CVScan ATS — Testez ton CV contre les robots recruteurs. 100% gratuit, 100% local.">
@@ -576,6 +574,7 @@ textarea.gen-in{resize:vertical;min-height:80px}
     <div class="sb-item" id="sbPrivacy"><span class="sb-item-ico">🔒</span>Confidentialité</div>
     <div class="sb-item" id="sbLegal"><span class="sb-item-ico">⚖️</span>Mentions légales</div>
     <div class="sb-item" id="sbCgu"><span class="sb-item-ico">📋</span>CGU</div>
+    <div class="sb-item" id="sbDeploy"><span class="sb-item-ico">🚀</span>Activer l'IA Claude</div>
   </div>
   <div class="sb-foot">CVScan ATS v3.0 · 100% gratuit · 0 données collectées</div>
 </div>
@@ -633,7 +632,7 @@ textarea.gen-in{resize:vertical;min-height:80px}
   <div class="loader-orb"><div class="loader-core"></div></div>
   <div class="load-step" id="loaderStep">CHARGEMENT...</div>
   <div class="load-bar-wrap"><div class="load-bar-fill"></div></div>
-  <div class="load-lbl">analyse ats en cours</div>
+  <div class="load-lbl" id="loaderLbl">analyse ia en cours</div>
 </div>
 
 <!-- RESULTS -->
@@ -1096,9 +1095,11 @@ function launchConfetti(score){
   }
 }
 
-// ══ RUN ══
-var STEPS=['SCAN DU FICHIER...','EXTRACTION DU TEXTE...','ANALYSE ATS...','VÉRIFICATION DES MOTS-CLÉS...','CALCUL DU SCORE...'];
+// ══ RUN — ANALYSE IA + FALLBACK JS ══
+var STEPS_FREE=['LECTURE DU FICHIER...','EXTRACTION DU TEXTE...','ANALYSE EN COURS...','VÉRIFICATION DES SECTIONS...','CALCUL DU SCORE...'];
+var STEPS_AI=['LECTURE DU FICHIER...','EXTRACTION DU TEXTE...','ENVOI À L\'IA...','CLAUDE ANALYSE TON CV...','INTERPRÉTATION DES RÉSULTATS...','FINALISATION DU RAPPORT...'];
 var stepTmr=null,lastResult=null,lastFilename='';
+var _useAI=true; // bascule sur JS si l'API échoue
 
 document.getElementById('analyzeBtn').addEventListener('click',runAnalysis);
 
@@ -1107,21 +1108,156 @@ async function runAnalysis(){
   document.getElementById('uploadArea').style.display='none';
   document.getElementById('results').classList.remove('show');
   var loader=document.getElementById('loader');loader.classList.add('show');
-  var si=0;
-  stepTmr=setInterval(function(){si=(si+1)%STEPS.length;document.getElementById('loaderStep').textContent=STEPS[si];},650);
+
+  // Extraction texte
   if(!cvText){var r=await extractText(cvFile);cvText=r.text;cvPages=r.pages;}
-  await new Promise(function(res){setTimeout(res,2000);});
-  clearInterval(stepTmr);loader.classList.remove('show');
-  var jo=document.getElementById('jobOffer').value;
-  var res=analyzeATS(cvText,cvFile.name,jo,cvPages||1);
+  var jo=document.getElementById('jobOffer').value||'';
+
+  // Loader dynamique
+  var steps=_useAI?STEPS_AI:STEPS_FREE;
+  var si=0;
+  document.getElementById('loaderStep').textContent=steps[0];
+  stepTmr=setInterval(function(){
+    si=Math.min(si+1,steps.length-1);
+    document.getElementById('loaderStep').textContent=steps[si];
+  },900);
+
+  var res;
+  if(_useAI){
+    try{
+      res=await analyzeWithAI(cvText,cvFile.name,jo,cvPages||1);
+    }catch(e){
+      _useAI=false;
+      var isCORS=e.message==='Failed to fetch'||e.message==='Load failed'||
+                 e.message==='NetworkError when attempting to fetch resource.'||
+                 (e.name==='TypeError'&&e.message.toLowerCase().indexOf('fetch')>-1);
+      var lbl=document.getElementById('loaderLbl');
+      if(lbl){
+        if(isCORS){
+          lbl.innerHTML='Analyse locale (héberge le site pour activer l'IA)';
+        } else {
+          lbl.innerHTML='IA indisponible — analyse locale en cours...';
+        }
+      }
+      console.info('Fallback JS:',e.message||e);
+      await new Promise(function(r){setTimeout(r,900);});
+      res=analyzeATS(cvText,cvFile.name,jo,cvPages||1);
+    }
+  } else {
+    await new Promise(function(r){setTimeout(r,1800);});
+    res=analyzeATS(cvText,cvFile.name,jo,cvPages||1);
+  }
+
+  clearInterval(stepTmr);
+  loader.classList.remove('show');
   lastResult=res;lastFilename=cvFile.name;
   incCount();
   renderResults(res);
   launchConfetti(res.score);
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// ANALYSE PAR IA — Claude Sonnet (API intégrée artifact)
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function analyzeWithAI(text,filename,jobOffer,pages){
+  var cvTxt=text.slice(0,5500);
+  var joTxt=jobOffer?('\n\nOFFRE D\'EMPLOI CIBLE:\n'+jobOffer.slice(0,1200)):'';
+
+  var prompt='Tu es un expert ATS et recruteur senior.\n'+
+    'Analyse ce CV PRÉCISÉMENT. Ne signale une erreur QUE si elle est réellement absente du texte.\n\n'+
+    'CV (fichier: '+filename+', '+pages+' page(s)):\n---\n'+cvTxt+'\n---'+joTxt+'\n\n'+
+    'Réponds UNIQUEMENT avec du JSON valide (sans backticks, sans commentaires).\n'+
+    'Structure exacte: {"score":<0-100>,"grade":"<A|B|C|D|E>","verdict":"<EXCELLENT|BON|PASSABLE|FAIBLE|CRITIQUE>",'+
+    '"verdictDesc":"<phrase>","issues":[{"type":"<critical|warning|tip>","title":"<titre>","desc":"<conseil>"}],'+
+    '"checklist":[{"text":"<critère>","state":"<pass|fail|warn|info>","note":"<détail>"}],'+
+    '"subScores":[{"label":"<nom>","val":<0-100>,"pct":<0-100>}],'+
+    '"kwFound":[],"kwMissing":[],'+
+    '"jobMatch":'+(jobOffer?'{"pct":<0-100>,"foundList":[],"missingList":[]}':'null')+','+
+    '"experiences":[{"start":<an>,"end":<an>,"duration":<n>,"ongoing":<bool>,"context":"<titre>"}],'+
+    '"gaps":[{"from":<an>,"to":<an>,"years":<n>}],'+
+    '"info":{"wordCount":<n>,"pageCount":'+pages+',"expLevel":"<junior|mid|senior|expert>",'+
+    '"contractType":"<type>","totalExpYrs":<n>,"emails":[],"hasPhone":<bool>,"hasLinkedIn":<bool>,'+
+    '"otherUrls":[],"foundTech":[],"foundSoft":[],"foundLangs":[],"diplomaLevel":"<niveau>",'+
+    '"specials":<n>,"emojis":<n>,"quantCount":<n>,"foundVerbs":[],"hasTitle":<bool>,'+
+    '"hasTelework":<bool>,"hasLocation":<bool>,"hasAvail":<bool>,"hasWorkAuth":<bool>,'+
+    '"stability":"<Instable|Stable|Solide>","parsingQuality":"<Excellent|Correct|Faible>"}}\n\n'+
+    'RÈGLES STRICTES:\n'+
+    '- Si un email est présent: hasPhone/email ne sont PAS des erreurs\n'+
+    '- Si le contenu existe sans titre exact: ne pas signaler la section absente\n'+
+    '- Maximum 8 issues, vrais problèmes seulement\n'+
+    '- 15-18 entrées checklist, 8 subScores exactement\n'+
+    '- subScores labels: Format, Structure, Contenu, Contact, Chronologie, Compétences, Mots-clés, Langue';
+
+  var response=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:3500,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+
+  if(!response.ok){
+    var errJson=null;
+    try{errJson=await response.json();}catch(x){}
+    throw new Error('HTTP '+(response.status)+((errJson&&errJson.error)?': '+errJson.error.message:''));
+  }
+
+  var data=await response.json();
+  var rawText='';
+  for(var i=0;i<(data.content||[]).length;i++){
+    if(data.content[i].type==='text')rawText+=data.content[i].text;
+  }
+
+  // Nettoyage JSON
+  var cleaned=rawText.trim();
+  if(cleaned.indexOf('```')>-1){
+    cleaned=cleaned.replace(/```json/gi,'').replace(/```/g,'').trim();
+  }
+  var jStart=cleaned.indexOf('{');
+  var jEnd=cleaned.lastIndexOf('}');
+  if(jStart>-1&&jEnd>jStart)cleaned=cleaned.slice(jStart,jEnd+1);
+
+  var parsed=JSON.parse(cleaned);
+
+  // Valeurs par défaut robustes
+  parsed.score=Math.max(0,Math.min(100,parseInt(parsed.score)||50));
+  var grades=['A','B','C','D','E'];
+  if(grades.indexOf(parsed.grade)===-1){
+    parsed.grade=parsed.score>=85?'A':parsed.score>=70?'B':parsed.score>=55?'C':parsed.score>=40?'D':'E';
+  }
+  parsed.verdict=parsed.verdict||'PASSABLE';
+  parsed.verdictDesc=parsed.verdictDesc||'Analyse complétée.';
+  if(!Array.isArray(parsed.issues))parsed.issues=[];
+  if(!Array.isArray(parsed.checklist))parsed.checklist=[];
+  if(!Array.isArray(parsed.subScores))parsed.subScores=[];
+  if(!Array.isArray(parsed.kwFound))parsed.kwFound=[];
+  if(!Array.isArray(parsed.kwMissing))parsed.kwMissing=[];
+  if(!Array.isArray(parsed.experiences))parsed.experiences=[];
+  if(!Array.isArray(parsed.gaps))parsed.gaps=[];
+  if(!parsed.info||typeof parsed.info!=='object')parsed.info={};
+  var inf=parsed.info;
+  if(!inf.wordCount)inf.wordCount=text.split(/\s+/).filter(function(w){return w.length>1;}).length;
+  if(!inf.pageCount)inf.pageCount=pages;
+  if(!inf.expLevel)inf.expLevel='mid';
+  if(!Array.isArray(inf.foundTech))inf.foundTech=[];
+  if(!Array.isArray(inf.foundSoft))inf.foundSoft=[];
+  if(!Array.isArray(inf.foundLangs))inf.foundLangs=[];
+  if(!Array.isArray(inf.emails))inf.emails=[];
+  if(!Array.isArray(inf.otherUrls))inf.otherUrls=[];
+  if(!Array.isArray(inf.foundVerbs))inf.foundVerbs=[];
+  if(typeof inf.hasPhone!=='boolean')inf.hasPhone=false;
+  if(typeof inf.hasLinkedIn!=='boolean')inf.hasLinkedIn=false;
+  if(!inf.quantCount)inf.quantCount=0;
+  if(!inf.totalExpYrs)inf.totalExpYrs=0;
+  if(!inf.stability)inf.stability='Stable';
+  parsed._source='ai';
+  return parsed;
+}
+
 // ══ RENDER ══
-var CIRC=263.9;
+var CIRC2=251.3;
 function sc(p){return p>=70?'cg':p>=45?'ca':'cr';}
 function pc(p){return p>=70?'var(--green)':p>=45?'var(--amb)':'var(--red)';}
 function stk(s){return s>=70?'#00e87a':s>=45?'#ff9f0a':'#ff3b5c';}
@@ -1158,6 +1294,15 @@ var GS={A:'background:rgba(0,232,122,.15);color:#00e87a',B:'background:rgba(212,
 
 function renderResults(res){
   var s=res.score,info=res.info||{};
+  // AI badge in res-bar
+  var ttlEl=document.querySelector('.res-ttl');
+  if(ttlEl){
+    var isAI=res._source==='ai';
+    ttlEl.innerHTML='Analyse terminée'+
+      (isAI?
+        ' <span title="Analysé par Claude IA" style="font-family:Space Mono,monospace;font-size:9px;padding:2px 9px;border-radius:20px;background:rgba(191,95,255,.12);color:var(--purple);border:1px solid rgba(191,95,255,.25);font-weight:700;letter-spacing:.06em">✦ IA Claude</span>':
+        ' <span title="Héberge le site pour activer l'IA Claude" style="font-family:Space Mono,monospace;font-size:9px;padding:2px 9px;border-radius:20px;background:var(--abg);color:var(--amb);border:1px solid var(--abd);font-weight:700;cursor:help">⚡ Analyse locale</span>');
+  }
   // Score ring
   var arc=document.getElementById('scoreArc');
   arc.style.stroke=stk(s);
@@ -1203,6 +1348,28 @@ function renderResults(res){
   setTimeout(function(){document.querySelectorAll('.bar-fill').forEach(function(el){el.style.width=el.dataset.w+'%';});},120);
   document.getElementById('results').classList.add('show');
   window.scrollTo({top:0,behavior:'smooth'});
+  // Toast si analyse locale
+  if(!res._source){showToast();}
+}
+
+function showToast(){
+  var existing=document.getElementById('aiToast');if(existing)return;
+  var t=document.createElement('div');
+  t.id='aiToast';
+  t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:500;max-width:320px;'+
+    'background:var(--bg2);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;'+
+    'box-shadow:0 8px 32px rgba(0,0,0,.4);animation:fadeUp .3s ease;cursor:pointer';
+  t.innerHTML='<div style="display:flex;align-items:flex-start;gap:10px">'+
+    '<div style="font-size:20px;flex-shrink:0">💡</div>'+
+    '<div>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px">Analyse locale activée</div>'+
+      '<div style="font-size:12px;color:var(--tx2);line-height:1.55">L'analyse IA Claude nécessite un hébergement web. Héberge ce fichier sur <strong style=\'color:var(--lime)\'>Netlify</strong> ou <strong style=\'color:var(--lime)\'>GitHub Pages</strong> pour l'activer gratuitement.</div>'+
+    '</div>'+
+    '<div onclick="document.getElementById(\'aiToast\').remove()" style="font-size:14px;color:var(--tx3);cursor:pointer;flex-shrink:0;padding:0 2px">✕</div>'+
+  '</div>';
+  t.onclick=function(e){if(e.target.tagName!=='DIV'||e.target.onclick)return;t.remove();};
+  document.body.appendChild(t);
+  setTimeout(function(){if(document.getElementById('aiToast'))document.getElementById('aiToast').remove();},9000);
 }
 
 function renderBarsSection(res){
@@ -1436,6 +1603,7 @@ document.getElementById('sbPerfect').addEventListener('click',function(){closeSi
 document.getElementById('sbPrivacy').addEventListener('click',function(){closeSidebar();openModal('privacy');});
 document.getElementById('sbLegal').addEventListener('click',function(){closeSidebar();openModal('legal');});
 document.getElementById('sbCgu').addEventListener('click',function(){closeSidebar();openModal('cgu');});
+document.getElementById('sbDeploy').addEventListener('click',function(){closeSidebar();openModal('deploy');});
 
 // ══ LEADERBOARD ══
 function getLB(){try{return JSON.parse(localStorage.getItem('cvscan_lb')||'[]');}catch(e){return [];}}
@@ -1727,7 +1895,17 @@ var MODALS={
   privacy:{title:'🔒 Politique de confidentialité',html:function(){return '<h3>Principe</h3><p>CVScan ATS fonctionne entièrement dans ton navigateur. Aucun fichier, aucune donnée personnelle ne quitte ton appareil.</p><h3>Données traitées</h3><p>Localement uniquement : le fichier CV, le texte extrait, le texte de l\'offre si saisi.</p><h3>Zéro collecte</h3><p>Pas de cookie de tracking, pas de pixel publicitaire, pas d\'analytique externe.</p><h3>Bibliothèques</h3><p>PDF.js est chargé depuis cdnjs.cloudflare.com uniquement pour lire les PDFs. Aucune donnée n\'est transmise.</p><h3>RGPD</h3><p>Aucune donnée collectée = aucun droit d\'accès ou suppression applicable.</p>';}},
   legal:{title:'⚖️ Mentions légales',html:function(){return '<h3>Éditeur</h3><p>CVScan ATS est un outil gratuit développé à titre informatif et éducatif.</p><h3>Propriété intellectuelle</h3><p>Code source et design protégés par le droit d\'auteur.</p><h3>Limitation de responsabilité</h3><p>Résultats indicatifs. Ne garantit pas le passage dans un ATS réel — chaque éditeur ATS a ses propres algorithmes.</p>';}},
   cgu:{title:'📋 CGU',html:function(){return '<h3>Accès</h3><p>Gratuit, sans inscription, libre d\'utilisation selon ces CGU.</p><h3>Autorisé</h3><p>Analyser son CV, usage pédagogique, accompagnement professionnel (coach, conseiller).</p><h3>Interdit</h3><p>Analyser des CVs tiers sans consentement, falsification, activité frauduleuse.</p><h3>Responsabilité</h3><p>L\'utilisateur est seul responsable des décisions prises sur la base des résultats.</p>';}},
-  _nores:{title:'❗ Analyse requise',html:function(){return '<p style="font-size:14px;color:var(--tx2)">Tu dois d\'abord analyser ton CV pour publier ton score dans le Leaderboard.</p><p style="font-family:Space Mono,monospace;font-size:12px;color:var(--tx3)">Dépose ton CV → Lance l\'analyse → Publie ton score.</p>';}}
+  _nores:{title:'❗ Analyse requise',html:function(){return '<p style="font-size:14px;color:var(--tx2)">Tu dois d\'abord analyser ton CV pour publier ton score dans le Leaderboard.</p><p style="font-family:Space Mono,monospace;font-size:12px;color:var(--tx3)">Dépose ton CV → Lance l\'analyse → Publie ton score.</p>';}},
+  deploy:{title:'🚀 Activer l\'IA Claude',html:function(){
+    return '<div style="background:var(--lime-dim);border:1px solid rgba(212,255,0,.2);border-radius:var(--r);padding:13px 16px;margin-bottom:16px;font-size:13px;color:var(--lime)">L\'analyse IA Claude Sonnet est <strong style="color:var(--tx)">déjà intégrée</strong>. Elle s\'active automatiquement quand le site est hébergé.</div>'+
+    '<p style="font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.65">En local, le navigateur bloque les appels réseau pour sécurité. Héberge en 2 min :</p>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">'+
+    '<div style="background:var(--gbg);border:1px solid var(--gbd);border-radius:var(--r);padding:13px 15px"><div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:4px">🟢 1. Netlify Drop — RECOMMANDÉ (Gratuit, 30s)</div><div style="font-size:12px;color:var(--tx2);line-height:1.6">Va sur <strong>app.netlify.com/drop</strong> → glisse ton fichier HTML → URL en ligne instantanément. L\'IA s\'active automatiquement.</div></div>'+
+    '<div style="background:var(--bbg);border:1px solid var(--bbd);border-radius:var(--r);padding:13px 15px"><div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:4px">🔵 2. GitHub Pages (Gratuit)</div><div style="font-size:12px;color:var(--tx2);line-height:1.6">Crée un repo GitHub → upload ton HTML → Settings → Pages → Source: main.</div></div>'+
+    '<div style="background:var(--bg3);border:1px solid var(--line);border-radius:var(--r);padding:13px 15px"><div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:4px">⚫ 3. Vercel (Gratuit)</div><div style="font-size:12px;color:var(--tx2);line-height:1.6">vercel.com → New Project → upload → Deploy.</div></div>'+
+    '</div>'+
+    '<div style="font-family:Space Mono,monospace;font-size:11px;color:var(--tx3);text-align:center;padding:10px;background:var(--bg3);border-radius:8px">En local → analyse JS (moins précise mais fonctionnelle). Hébergé → IA Claude automatique.</div>';
+  }}
 };
 
 function openModal(type){
@@ -1896,7 +2074,7 @@ function renderPremium(){
   // Ad revenue guide
   var adGuide='<div style="background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:20px 22px;margin-bottom:20px">'+
     '<div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:12px;display:flex;align-items:center;gap:8px">📺 Monétisation par publicités</div>'+
-    '<div style="font-size:13px;color:var(--tx2);line-height:1.65;margin-bottom:14px">Le système "regarder une pub" est déjà intégré. Pour <strong style="color:var(--tx)">toucher de vraies commissions</strong>, connecte l\'une de ces régies :</div>'+
+    '<div style="font-size:13px;color:var(--tx2);line-height:1.65;margin-bottom:14px">Le système "regarder une pub" est déjà intégré. Pour <strong style="color:var(--tx)">toucher de vraies commissions</strong>, connecte l'une de ces régies :</div>'+
     '<div style="display:flex;flex-direction:column;gap:8px">'+
       '<div style="background:var(--bg3);border-radius:var(--r);padding:12px 14px"><div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px">Google AdSense (recommandé)</div><div style="font-size:12px;color:var(--tx2)">Inscris-toi sur <strong>adsense.google.com</strong> · Place ton code dans le bloc publicitaire · Revenus : 0,50€ à 3€ par 1 000 vues · Idéal pour commencer</div></div>'+
       '<div style="background:var(--bg3);border-radius:var(--r);padding:12px 14px"><div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:3px">Google AdMob Rewarded (apps mobiles)</div><div style="font-size:12px;color:var(--tx2)">Pour une future app mobile CVScan · Pubs Rewarded type Coin Master, Clash of Clans · Revenus : 3€ à 15€ / 1 000 vues rewarded</div></div>'+
